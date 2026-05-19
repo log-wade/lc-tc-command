@@ -1,11 +1,9 @@
 -- Automated LC/TC System — Phase 1 schema
 -- Mirrors design doc Section 6
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Agents (supervising licensees)
 CREATE TABLE agents (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
@@ -17,7 +15,7 @@ CREATE TABLE agents (
 
 -- Contacts (clients, escrow officers, etc.)
 CREATE TABLE contacts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   legal_name TEXT NOT NULL,
   preferred_name TEXT,
   email TEXT,
@@ -29,7 +27,7 @@ CREATE TABLE contacts (
 
 -- Vendors (photographers, title, lenders, etc.)
 CREATE TABLE vendors (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_name TEXT NOT NULL,
   vendor_type TEXT NOT NULL CHECK (vendor_type IN ('photographer', 'title', 'lender', 'staging', 'sign', 'inspector', 'hoa', 'other')),
   primary_contact TEXT,
@@ -40,7 +38,7 @@ CREATE TABLE vendors (
 
 -- Listings (LC files)
 CREATE TABLE listings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_address TEXT NOT NULL,
   city TEXT,
   state TEXT DEFAULT 'TX',
@@ -84,7 +82,7 @@ CREATE TABLE listing_sellers (
 
 -- Transactions (TC files)
 CREATE TABLE transactions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   linked_listing_id UUID REFERENCES listings(id),
   side TEXT NOT NULL CHECK (side IN ('sell', 'buy', 'both')),
   property_address TEXT NOT NULL,
@@ -121,7 +119,7 @@ CREATE TABLE transaction_parties (
 
 -- Deadlines (deadline engine output)
 CREATE TABLE deadlines (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   file_type TEXT NOT NULL CHECK (file_type IN ('listing', 'transaction')),
   file_id UUID NOT NULL,
   deadline_type TEXT NOT NULL,
@@ -155,7 +153,7 @@ CREATE TABLE email_templates (
 
 -- Communications log
 CREATE TABLE communications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   file_type TEXT CHECK (file_type IN ('listing', 'transaction')),
   file_id UUID,
   template_id TEXT REFERENCES email_templates(id),
@@ -175,7 +173,7 @@ CREATE TABLE communications (
 
 -- Human-in-loop review queue
 CREATE TABLE review_queue (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   file_type TEXT,
   file_id UUID,
   item_type TEXT NOT NULL CHECK (item_type IN (
@@ -194,7 +192,7 @@ CREATE TABLE review_queue (
 
 -- Documents
 CREATE TABLE documents (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   file_type TEXT CHECK (file_type IN ('listing', 'transaction')),
   file_id UUID,
   doc_type TEXT NOT NULL,
@@ -208,7 +206,7 @@ CREATE TABLE documents (
 
 -- Escalations
 CREATE TABLE escalations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   file_type TEXT,
   file_id UUID,
   tier INTEGER NOT NULL CHECK (tier BETWEEN 1 AND 4),
@@ -221,7 +219,7 @@ CREATE TABLE escalations (
 
 -- Audit log (Layer 8)
 CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_type TEXT NOT NULL CHECK (actor_type IN ('system', 'human', 'ai_agent')),
   actor_id TEXT,
   file_type TEXT,
@@ -229,7 +227,7 @@ CREATE TABLE audit_logs (
   action_type TEXT NOT NULL,
   inputs JSONB DEFAULT '{}',
   outputs JSONB DEFAULT '{}',
-  references JSONB DEFAULT '{}',
+  related_refs JSONB DEFAULT '{}',
   outcome TEXT CHECK (outcome IN ('success', 'failure', 'escalated', 'pending')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -239,7 +237,7 @@ CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
 
 -- Inbound emails (AI triage)
 CREATE TABLE inbound_emails (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   message_id TEXT UNIQUE,
   from_address TEXT NOT NULL,
   subject TEXT,
