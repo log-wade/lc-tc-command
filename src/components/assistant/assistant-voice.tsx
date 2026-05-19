@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useConversation } from "@elevenlabs/react";
+import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import { Mic, MicOff, Phone, PhoneOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function AssistantVoice() {
+function AssistantVoiceInner() {
   const [error, setError] = useState<string | null>(null);
   const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
@@ -16,30 +16,32 @@ export function AssistantVoice() {
     onError: (err) => setError(typeof err === "string" ? err : "Voice connection error"),
   });
 
-  const start = useCallback(async () => {
+  const start = useCallback(() => {
     setError(null);
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+    void (async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const signedRes = await fetch("/api/elevenlabs/signed-url");
-      if (signedRes.ok) {
-        const { signedUrl } = await signedRes.json();
-        await conversation.startSession({ signedUrl });
-        return;
+        const signedRes = await fetch("/api/elevenlabs/signed-url");
+        if (signedRes.ok) {
+          const { signedUrl } = await signedRes.json();
+          conversation.startSession({ signedUrl });
+          return;
+        }
+
+        if (!agentId) {
+          throw new Error("ElevenLabs agent not configured.");
+        }
+
+        conversation.startSession({ agentId });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not start voice session");
       }
-
-      if (!agentId) {
-        throw new Error("ElevenLabs agent not configured.");
-      }
-
-      await conversation.startSession({ agentId });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not start voice session");
-    }
+    })();
   }, [agentId, conversation]);
 
-  const stop = useCallback(async () => {
-    await conversation.endSession();
+  const stop = useCallback(() => {
+    conversation.endSession();
   }, [conversation]);
 
   const connected = conversation.status === "connected";
@@ -83,17 +85,25 @@ export function AssistantVoice() {
 
       <div className="mt-8 flex gap-3">
         {!connected ? (
-          <Button onClick={() => void start()} disabled={connecting} size="lg">
+          <Button onClick={start} disabled={connecting} size="lg">
             <Phone className="h-4 w-4" />
             {connecting ? "Connecting…" : "Start voice"}
           </Button>
         ) : (
-          <Button variant="secondary" onClick={() => void stop()} size="lg">
+          <Button variant="secondary" onClick={stop} size="lg">
             <PhoneOff className="h-4 w-4" />
             End call
           </Button>
         )}
       </div>
     </div>
+  );
+}
+
+export function AssistantVoice() {
+  return (
+    <ConversationProvider>
+      <AssistantVoiceInner />
+    </ConversationProvider>
   );
 }
