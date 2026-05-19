@@ -1,5 +1,5 @@
 import { getAuditLogs } from "@/lib/data";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -8,46 +8,59 @@ export default async function AuditPage() {
   const logs = await getAuditLogs(100);
 
   return (
-    <div className="p-8">
-      <header className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-amber-700">
-          Layer 8 — Audit & Observability
-        </p>
-        <h1 className="font-serif text-2xl font-bold">Audit Log</h1>
-        <p className="text-sm text-stone-600">
-          Every system action with timestamp, actor, inputs, and outcome — broker-exportable.
-        </p>
-      </header>
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+      <PageHeader
+        eyebrow="Compliance"
+        title="Audit log"
+        description="Every system action — broker-exportable for TREC and E&O review."
+      />
 
-      <Card>
-        <CardHeader>
-          <h2 className="font-semibold">Recent Events</h2>
-        </CardHeader>
-        <CardContent className="max-h-[70vh] overflow-auto p-0">
-          <table className="w-full text-xs">
-            <thead className="sticky top-0 bg-stone-50 text-left text-stone-500">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-sm">
+        <div className="max-h-[70vh] overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-muted">
               <tr>
-                <th className="px-4 py-2">Time</th>
-                <th className="px-4 py-2">Actor</th>
-                <th className="px-4 py-2">Action</th>
-                <th className="px-4 py-2">Outcome</th>
+                <th className="px-4 py-3">When</th>
+                <th className="px-4 py-3">Who</th>
+                <th className="px-4 py-3">Action</th>
+                <th className="px-4 py-3">Result</th>
               </tr>
             </thead>
             <tbody>
-              {logs.map((log: Record<string, unknown>) => (
-                <tr key={String(log.id)} className="border-t border-stone-100">
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    {formatDate(String(log.created_at))}
+              {logs.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-12 text-center text-ink-muted">
+                    No events yet — activity will appear as you use the system.
                   </td>
-                  <td className="px-4 py-2">{String(log.actor_type)}</td>
-                  <td className="px-4 py-2 font-mono">{String(log.action_type)}</td>
-                  <td className="px-4 py-2">{String(log.outcome ?? "—")}</td>
                 </tr>
-              ))}
+              ) : (
+                logs.map((log: Record<string, unknown>) => (
+                  <tr key={String(log.id)} className="border-t border-stone-100 hover:bg-stone-50/80">
+                    <td className="whitespace-nowrap px-4 py-3 text-ink-muted">
+                      {formatDate(String(log.created_at))}
+                    </td>
+                    <td className="px-4 py-3 capitalize">{String(log.actor_type)}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{String(log.action_type)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                          log.outcome === "success"
+                            ? "bg-success-soft text-success"
+                            : log.outcome === "escalated"
+                              ? "bg-urgent-soft text-urgent"
+                              : "bg-stone-100 text-ink-muted"
+                        }`}
+                      >
+                        {String(log.outcome ?? "—")}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

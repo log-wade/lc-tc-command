@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { StatsGrid } from "@/components/dashboard/stats-grid";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { TodayHero } from "@/components/dashboard/today-hero";
+import { PageHeader } from "@/components/ui/page-header";
+import { FileRow, formatListingMeta, formatTransactionMeta } from "@/components/ui/file-row";
+import { DeadlineRow } from "@/components/ui/deadline-row";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import {
   getDashboardStats,
   getListings,
@@ -9,8 +12,7 @@ import {
   getDeadlines,
   getReviewQueue,
 } from "@/lib/data";
-import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
-import { isDatabaseConfigured } from "@/lib/supabase/server";
+import { Home, FileText, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -23,143 +25,133 @@ export default async function DashboardPage() {
     getReviewQueue(),
   ]);
 
-  const upcomingDeadlines = deadlines
+  const now = new Date();
+  const todayStr = now.toDateString();
+
+  const pendingDeadlines = deadlines
     .filter((d: { status: string }) => d.status === "pending")
-    .sort(
-      (a: { due_at: string }, b: { due_at: string }) =>
-        new Date(a.due_at).getTime() - new Date(b.due_at).getTime()
-    )
-    .slice(0, 6);
+    .map((d: { id: string; label: string; due_at: string; file_type: string; file_id: string }) => {
+      const due = new Date(d.due_at);
+      const overdue = due < now;
+      const dueToday = due.toDateString() === todayStr && !overdue;
+      const file =
+        d.file_type === "listing"
+          ? listings.find((l) => l.id === d.file_id)
+          : transactions.find((t) => t.id === d.file_id);
+      const address = file?.property_address ?? "Unknown file";
+      const href =
+        d.file_type === "listing"
+          ? `/listings/${d.file_id}`
+          : `/transactions/${d.file_id}`;
+      return { ...d, overdue, dueToday, address, href };
+    })
+    .sort((a, b) => {
+      if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+      return new Date(a.due_at).getTime() - new Date(b.due_at).getTime();
+    })
+    .slice(0, 5);
+
+  const activeListings = listings.filter((l) =>
+    ["active", "coming_soon", "active_option", "active_contingent", "intake"].includes(l.status)
+  );
+  const activeTxns = transactions.filter((t) =>
+    ["active", "pending", "intake"].includes(t.status)
+  );
 
   return (
-    <div className="p-8">
-      <header className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-amber-700">
-          Command Center
-        </p>
-        <h1 className="font-serif text-3xl font-bold text-stone-900">
-          Good morning, Carly
-        </h1>
-        <p className="mt-1 text-stone-600">
-          {stats.activeListings} listings · {stats.activeTransactions} transactions ·{" "}
-          {stats.pendingReviews} awaiting review
-        </p>
-        {!isDatabaseConfigured() && (
-          <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Demo mode — connect Supabase env vars for persistent storage.
-          </p>
-        )}
-      </header>
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <TodayHero stats={stats} />
 
-      <StatsGrid stats={stats} />
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <h2 className="font-semibold">Active Listings</h2>
-            <Link href="/listings" className="text-xs text-amber-700 hover:underline">
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3 p-0">
-            {listings.slice(0, 5).map((l) => (
+      <div className="mt-10 grid gap-8 lg:grid-cols-5">
+        <section className="animate-fade-up stagger-1 lg:col-span-3">
+          <PageHeader
+            title="Needs attention"
+            description="Deadlines and reviews that should move before end of day."
+          />
+          <div className="space-y-2">
+            {reviews.slice(0, 3).map((r: { id: string; title?: string; priority?: string }) => (
               <Link
+                key={r.id}
+                href="/reviews"
+                className="flex items-center gap-3 rounded-xl border border-amber-200/60 bg-warning-soft px-4 py-3 transition hover:shadow-sm"
+              >
+                <span className="rounded-md bg-amber-200/80 px-2 py-0.5 text-xs font-bold text-amber-900">
+                  {r.priority ?? "P2"}
+                </span>
+                <span className="flex-1 truncate text-sm font-medium text-ink">
+                  {r.title}
+                </span>
+                <ArrowRight className="h-4 w-4 text-amber-700" />
+              </Link>
+            ))}
+            {pendingDeadlines.map((d) => (
+              <DeadlineRow
+                key={d.id}
+                label={d.label}
+                dueAt={d.due_at}
+                fileHref={d.href}
+                fileLabel={d.address}
+                overdue={d.overdue}
+                dueToday={d.dueToday}
+              />
+            ))}
+            {reviews.length === 0 && pendingDeadlines.length === 0 && (
+              <EmptyState
+                icon={Home}
+                title="All clear for now"
+                description="No overdue deadlines or pending reviews. Check back after intake or when emails arrive."
+              />
+            )}
+          </div>
+        </section>
+
+        <section className="animate-fade-up stagger-2 lg:col-span-2">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold text-ink">Active files</h2>
+            <span className="text-sm text-ink-muted">
+              {activeListings.length + activeTxns.length} open
+            </span>
+          </div>
+          <div className="space-y-2">
+            {activeListings.slice(0, 3).map((l) => (
+              <FileRow
                 key={l.id}
                 href={`/listings/${l.id}`}
-                className="flex items-center justify-between border-t border-stone-100 px-5 py-3 hover:bg-stone-50"
-              >
-                <div>
-                  <p className="font-medium text-stone-900">{l.property_address}</p>
-                  <p className="text-xs text-stone-500">
-                    {formatCurrency(l.list_price)} · {l.county ?? "—"}
-                  </p>
-                </div>
-                <Badge className={statusColor(l.status)}>{l.status}</Badge>
-              </Link>
+                type="listing"
+                address={l.property_address}
+                meta={formatListingMeta(l.list_price, l.county)}
+                status={l.status}
+              />
             ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <h2 className="font-semibold">Active Transactions</h2>
-            <Link href="/transactions" className="text-xs text-amber-700 hover:underline">
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3 p-0">
-            {transactions.slice(0, 5).map((t) => (
-              <Link
+            {activeTxns.slice(0, 3).map((t) => (
+              <FileRow
                 key={t.id}
                 href={`/transactions/${t.id}`}
-                className="flex items-center justify-between border-t border-stone-100 px-5 py-3 hover:bg-stone-50"
-              >
-                <div>
-                  <p className="font-medium text-stone-900">{t.property_address}</p>
-                  <p className="text-xs text-stone-500">
-                    Close {formatDate(t.closing_date)} · {t.side}
-                  </p>
-                </div>
-                <Badge className={statusColor(t.status)}>{t.status}</Badge>
-              </Link>
+                type="transaction"
+                address={t.property_address}
+                meta={formatTransactionMeta(t.closing_date, t.side)}
+                status={t.status}
+              />
             ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold">Upcoming Deadlines</h2>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {upcomingDeadlines.length === 0 ? (
-              <p className="text-sm text-stone-500">No pending deadlines.</p>
-            ) : (
-              upcomingDeadlines.map((d: { id: string; label: string; due_at: string; file_type: string }) => (
-                <div
-                  key={d.id}
-                  className="flex justify-between rounded-lg bg-stone-50 px-3 py-2 text-sm"
-                >
-                  <span>{d.label}</span>
-                  <span className="text-stone-500">{formatDate(d.due_at)}</span>
-                </div>
-              ))
+            {activeListings.length === 0 && activeTxns.length === 0 && (
+              <p className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-ink-muted">
+                No active files yet. Start with a listing or contract intake.
+              </p>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <h2 className="font-semibold">Review Queue</h2>
-            <Link href="/reviews" className="text-xs text-amber-700 hover:underline">
-              Open queue
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Link href="/listings" className="flex-1">
+              <Button variant="secondary" size="sm" className="w-full">
+                All listings
+              </Button>
             </Link>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {reviews.length === 0 ? (
-              <p className="text-sm text-stone-500">Queue is clear.</p>
-            ) : (
-              reviews.slice(0, 5).map((r: { id: string; title?: string; priority?: string }) => (
-                <div
-                  key={r.id}
-                  className="flex items-center gap-2 rounded-lg border border-stone-100 px-3 py-2 text-sm"
-                >
-                  <Badge
-                    className={
-                      r.priority === "P0"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-amber-100 text-amber-800"
-                    }
-                  >
-                    {r.priority ?? "P2"}
-                  </Badge>
-                  <span className="truncate">{r.title}</span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+            <Link href="/transactions" className="flex-1">
+              <Button variant="secondary" size="sm" className="w-full">
+                All transactions
+              </Button>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

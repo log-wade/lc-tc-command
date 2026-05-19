@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getListing, getDeadlines } from "@/lib/data";
+import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
+import { DeadlineRow } from "@/components/ui/deadline-row";
 import { GoLiveButton } from "@/components/listings/go-live-button";
+import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -18,71 +20,82 @@ export default async function ListingDetailPage({
   if (!listing) notFound();
 
   const deadlines = await getDeadlines("listing", id);
+  const now = new Date();
 
   return (
-    <div className="p-8">
-      <Link href="/listings" className="text-sm text-amber-700 hover:underline">
-        ← Listings
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+      <Link
+        href="/listings"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-accent"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        All listings
       </Link>
-      <header className="mt-4 mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-2xl font-bold">{listing.property_address}</h1>
-          <p className="text-stone-600">
-            {listing.city}, {listing.state} {listing.zip} · {listing.county} County
-          </p>
-          <div className="mt-2 flex gap-2">
-            <Badge className={statusColor(listing.status)}>{listing.status}</Badge>
-            <Badge className={statusColor(listing.compliance_status ?? "pending")}>
-              MC: {listing.compliance_status ?? "pending"}
-            </Badge>
-          </div>
+
+      <PageHeader title={listing.property_address} description={[listing.city, listing.state, listing.zip].filter(Boolean).join(", ")}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className={statusColor(listing.status)}>{listing.status.replace(/_/g, " ")}</Badge>
+          {!listing.go_live_approved && listing.status === "intake" && (
+            <GoLiveButton listingId={listing.id} />
+          )}
+          {listing.go_live_approved && (
+            <span className="inline-flex items-center gap-1 text-sm text-success">
+              <CheckCircle2 className="h-4 w-4" />
+              Go-live approved
+            </span>
+          )}
         </div>
-        {!listing.go_live_approved && listing.status === "intake" && (
-          <GoLiveButton listingId={listing.id} />
-        )}
-      </header>
+      </PageHeader>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <h2 className="font-semibold">Listing Details</h2>
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2 text-sm">
-            <Detail label="List Price" value={formatCurrency(listing.list_price)} />
-            <Detail label="Target List" value={formatDate(listing.target_list_date)} />
-            <Detail label="Actual List" value={formatDate(listing.actual_list_date)} />
-            <Detail label="MLS #" value={listing.mls_number ?? "—"} />
-            <Detail label="Go-Live Approved" value={listing.go_live_approved ? "Yes" : "Pending agent approval"} />
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-2xl border border-border bg-surface-card p-6 shadow-sm">
+          <h2 className="font-display text-lg font-semibold">Listing details</h2>
+          <dl className="mt-4 space-y-3 text-sm">
+            <DetailRow label="List price" value={formatCurrency(listing.list_price)} />
+            <DetailRow label="Target list" value={formatDate(listing.target_list_date)} />
+            <DetailRow label="Went live" value={formatDate(listing.actual_list_date)} />
+            <DetailRow label="MLS #" value={listing.mls_number ?? "Not assigned"} />
+            <DetailRow label="MC compliance" value={listing.compliance_status ?? "pending"} />
+          </dl>
+        </section>
 
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold">Deadlines</h2>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
+        <section>
+          <h2 className="font-display mb-3 text-lg font-semibold">Deadlines</h2>
+          <div className="space-y-2">
             {deadlines.length === 0 ? (
-              <p className="text-stone-500">No deadlines pinned.</p>
+              <p className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-ink-muted">
+                No deadlines pinned yet.
+              </p>
             ) : (
-              deadlines.map((d: { id: string; label: string; due_at: string; status: string }) => (
-                <div key={d.id} className="flex justify-between rounded bg-stone-50 px-2 py-1.5">
-                  <span>{d.label}</span>
-                  <span className="text-stone-500">{formatDate(d.due_at)}</span>
-                </div>
-              ))
+              deadlines.map((d: { id: string; label: string; due_at: string; status: string }) => {
+                const due = new Date(d.due_at);
+                return (
+                  <DeadlineRow
+                    key={d.id}
+                    label={d.label}
+                    dueAt={d.due_at}
+                    overdue={d.status === "pending" && due < now}
+                    dueToday={
+                      d.status === "pending" &&
+                      due.toDateString() === now.toDateString() &&
+                      due >= now
+                    }
+                  />
+                );
+              })
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
     </div>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-xs text-stone-500">{label}</p>
-      <p className="font-medium">{value}</p>
+    <div className="flex justify-between gap-4 border-b border-stone-100 pb-2 last:border-0">
+      <dt className="text-ink-muted">{label}</dt>
+      <dd className="font-medium capitalize text-ink">{value}</dd>
     </div>
   );
 }

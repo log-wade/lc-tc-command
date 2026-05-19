@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
+import { AlertTriangle, Inbox } from "lucide-react";
 
 export function InboxTriageForm() {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
@@ -19,49 +23,62 @@ export function InboxTriageForm() {
         body: fd.get("body"),
       }),
     });
-    setResult(await res.json());
+    const json = await res.json();
+    setResult(json);
     setLoading(false);
+    if (json.wire_fraud_signal) {
+      toast.error("Wire fraud signal — follow phone verification protocol");
+    } else {
+      toast.success(`Classified as ${json.priority}`);
+    }
   }
 
   return (
     <div className="space-y-6">
-      <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
-        <label className="block">
-          <span className="text-xs font-medium text-stone-600">From</span>
-          <input name="from" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
-        </label>
-        <label className="block">
-          <span className="text-xs font-medium text-stone-600">Subject</span>
-          <input name="subject" required className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
-        </label>
-        <label className="block">
-          <span className="text-xs font-medium text-stone-600">Body</span>
-          <textarea name="body" required rows={6} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-[#1a2332] px-4 py-2 text-sm font-medium text-white"
-        >
-          {loading ? "Classifying..." : "Classify with AI Agent"}
-        </button>
+      <form
+        onSubmit={onSubmit}
+        className="space-y-4 rounded-2xl border border-border bg-surface-card p-6 shadow-sm"
+      >
+        <FormField label="From" name="from" placeholder="sender@example.com" />
+        <FormField label="Subject" name="subject" required placeholder="RE: 413 Pecan Hollow — wire instructions" />
+        <FormField
+          label="Message body"
+          name="body"
+          textarea
+          required
+          placeholder="Paste the full email here…"
+        />
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+          <Inbox className="h-4 w-4" />
+          {loading ? "Classifying…" : "Classify email"}
+        </Button>
       </form>
 
       {result && (
         <div
-          className={`rounded-xl border p-6 ${
+          className={`animate-fade-up rounded-2xl border p-6 ${
             result.wire_fraud_signal
-              ? "border-red-300 bg-red-50"
-              : "border-stone-200 bg-white"
+              ? "border-urgent/50 bg-urgent-soft"
+              : "border-border bg-surface-card"
           }`}
         >
-          <p className="text-xs font-semibold uppercase text-stone-500">Classification</p>
-          <p className="mt-2 text-2xl font-bold">{String(result.priority)}</p>
-          <p className="mt-2 text-sm">{String(result.suggested_action)}</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            Classification
+          </p>
+          <p className="mt-2 font-display text-4xl font-semibold text-ink">
+            {String(result.priority)}
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+            {String(result.suggested_action)}
+          </p>
           {Boolean(result.wire_fraud_signal) && (
-            <p className="mt-4 font-semibold text-red-800">
-              WIRE FRAUD PROTOCOL — Do not action. Verify by phone only.
-            </p>
+            <div className="mt-4 flex gap-3 rounded-xl bg-white/80 p-4 text-sm text-urgent">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              <p>
+                <strong>Wire fraud protocol:</strong> Do not action. Call the title closer using
+                the verified number on file. Loop broker immediately.
+              </p>
+            </div>
           )}
         </div>
       )}

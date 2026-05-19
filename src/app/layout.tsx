@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import { DM_Sans, Libre_Baskerville } from "next/font/google";
-import { Sidebar } from "@/components/layout/sidebar";
+import { Outfit, Newsreader } from "next/font/google";
+import { AppShell } from "@/components/layout/app-shell";
+import { Toaster } from "sonner";
 import "./globals.css";
 
-const sans = DM_Sans({
+const sans = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
-const serif = Libre_Baskerville({
-  weight: ["400", "700"],
+const display = Newsreader({
   subsets: ["latin"],
-  variable: "--font-serif",
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
-  title: "LC/TC Command — Automated Listing & Transaction Coordination",
+  title: "LC/TC Command — Your coordination workspace",
   description:
-    "Automated Listing & Transaction Coordination System for Texas residential real estate — KW Austin Northwest",
+    "Run every listing and transaction from one place. Built for Texas residential coordinators at Keller Williams Austin Northwest.",
 };
 
 export default function RootLayout({
@@ -26,12 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
-      <body className="min-h-screen bg-[#f5f3ef] font-sans text-stone-900 antialiased">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 overflow-auto">{children}</main>
-        </div>
+    <html lang="en" className={`${sans.variable} ${display.variable}`}>
+      <body className="min-h-screen antialiased">
+        <AppShell>{children}</AppShell>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

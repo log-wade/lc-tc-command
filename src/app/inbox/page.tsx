@@ -1,17 +1,14 @@
 import { InboxTriageForm } from "@/components/inbox/triage-form";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default function InboxPage() {
   return (
-    <div className="mx-auto max-w-2xl p-8">
-      <header className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-amber-700">
-          Layer 6 — AI Agent
-        </p>
-        <h1 className="font-serif text-2xl font-bold">Inbox Triage</h1>
-        <p className="text-sm text-stone-600">
-          Classify inbound email P0–P3. Wire-change signals auto-escalate to Tier 4.
-        </p>
-      </header>
+    <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
+      <PageHeader
+        eyebrow="AI assistant"
+        title="Inbox triage"
+        description="Paste an email to classify priority (P0–P3). Wire-change language auto-escalates — never action from email alone."
+      />
       <InboxTriageForm />
     </div>
   );
