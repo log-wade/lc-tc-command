@@ -12,6 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ONBOARDING_STORAGE_KEY,
   SIDEBAR_TOUR_TARGETS,
+  TOUR_ROUTES,
   TOUR_STEPS,
 } from "@/lib/onboarding/steps";
 import { OnboardingTour } from "./onboarding-tour";
@@ -84,12 +85,23 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const currentStep = TOUR_STEPS[stepIndex];
 
+  // Navigate when the tour step changes — don't yank the user back if they click away.
   useEffect(() => {
     if (!isActive || !currentStep?.route) return;
-    if (pathname !== currentStep.route) {
-      router.push(currentStep.route);
+    router.push(currentStep.route);
+  }, [isActive, currentStep?.id, currentStep?.route, router]);
+
+  // If they open another page (e.g. Email templates) during the tour, dismiss it.
+  useEffect(() => {
+    if (!isActive) return;
+    if (currentStep?.route && pathname !== currentStep.route) {
+      complete();
+      return;
     }
-  }, [isActive, currentStep, pathname, router]);
+    if (!TOUR_ROUTES.has(pathname)) {
+      complete();
+    }
+  }, [pathname, isActive, currentStep?.route, complete]);
 
   useEffect(() => {
     if (!isActive || !currentStep?.target) return;

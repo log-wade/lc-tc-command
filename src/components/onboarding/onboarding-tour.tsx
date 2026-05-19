@@ -113,9 +113,14 @@ export function OnboardingTour({
         };
 
   return createPortal(
-    <div className="fixed inset-0 z-[10000]" role="dialog" aria-modal aria-labelledby="tour-title">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-stone-900/70 backdrop-blur-[2px]" onClick={onSkip} />
+    <div
+      className="pointer-events-none fixed inset-0 z-[10000]"
+      role="dialog"
+      aria-modal
+      aria-labelledby="tour-title"
+    >
+      {/* Visual backdrop only — clicks pass through to the app */}
+      <div className="pointer-events-none absolute inset-0 bg-stone-900/70 backdrop-blur-[2px]" />
 
       {/* Spotlight cutout */}
       {rect && !isCenter && (
@@ -133,7 +138,7 @@ export function OnboardingTour({
       )}
 
       {/* Tooltip card */}
-      <div style={tooltipStyle} className="animate-fade-up">
+      <div style={tooltipStyle} className="pointer-events-auto animate-fade-up">
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl">
           <div className="h-1 bg-stone-100">
             <div

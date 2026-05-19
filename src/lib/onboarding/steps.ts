@@ -9,6 +9,15 @@ export const SIDEBAR_TOUR_TARGETS = new Set([
   "nav-files",
 ]);
 
+/** Pages the tour may highlight or navigate to — leaving these dismisses the tour */
+export const TOUR_ROUTES = new Set([
+  "/",
+  "/reviews",
+  "/inbox",
+  "/listings",
+  "/transactions",
+]);
+
 export type TourStep = {
   id: string;
   title: string;
