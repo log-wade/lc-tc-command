@@ -37,6 +37,9 @@ See `.env.example`. Production is configured on Vercel with:
 | `ANTHROPIC_API_KEY` | ✅ AI triage live |
 | `CRON_SECRET` | ✅ Deadline + Tuesday crons |
 | `RESEND_API_KEY` | ⏳ Add for real outbound email (simulated until set) |
+| `ELEVENLABS_API_KEY` | ✅ Voice + ConvAI agent |
+| `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` | ✅ Production agent |
+| `AGENT_WEBHOOK_SECRET` | ✅ Tool webhooks for voice agent |
 
 Re-sync env to Vercel after key rotation:
 
