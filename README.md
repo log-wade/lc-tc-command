@@ -28,12 +28,24 @@ Open [http://localhost:3000](http://localhost:3000). Without Supabase env vars, 
 
 ## Environment
 
-See `.env.example`. Minimum for production:
+See `.env.example`. Production is configured on Vercel with:
 
-- `NEXT_PUBLIC_SUPABASE_URL` + keys (run migrations in `supabase/migrations/`)
-- `ANTHROPIC_API_KEY` for AI triage
-- `RESEND_API_KEY` for outbound email
-- `CRON_SECRET` for Vercel cron routes
+| Variable | Status |
+|----------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ [lc-tc-command](https://supabase.com/dashboard/project/mueadgepbcguidxnuqxj) |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Set on Vercel |
+| `ANTHROPIC_API_KEY` | ✅ AI triage live |
+| `CRON_SECRET` | ✅ Deadline + Tuesday crons |
+| `RESEND_API_KEY` | ⏳ Add for real outbound email (simulated until set) |
+
+Re-sync env to Vercel after key rotation:
+
+```bash
+./scripts/setup-vercel-env.sh
+vercel deploy --prod
+```
+
+Local dev: `vercel env pull .env.local`
 
 ## Deploy (Vercel)
 
