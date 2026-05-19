@@ -140,16 +140,12 @@ export default async function DashboardPage() {
             )}
           </div>
           <div className="mt-4 flex gap-2">
-            <Link href="/listings" className="flex-1">
-              <Button variant="secondary" size="sm" className="w-full">
-                All listings
-              </Button>
-            </Link>
-            <Link href="/transactions" className="flex-1">
-              <Button variant="secondary" size="sm" className="w-full">
-                All transactions
-              </Button>
-            </Link>
+            <Button href="/listings" variant="secondary" size="sm" className="w-full flex-1">
+              All listings
+            </Button>
+            <Button href="/transactions" variant="secondary" size="sm" className="w-full flex-1">
+              All transactions
+            </Button>
           </div>
         </section>
       </div>

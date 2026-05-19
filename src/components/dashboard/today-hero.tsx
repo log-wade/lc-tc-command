@@ -45,16 +45,17 @@ export function TodayHero({ stats }: { stats: DashboardStats }) {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/intake/listing">
-              <Button size="lg" className="bg-white text-brand hover:bg-stone-100">
-                New listing
-              </Button>
-            </Link>
-            <Link href="/intake/transaction">
-              <Button size="lg" variant="secondary" className="border-white/20 bg-white/10 text-white hover:bg-white/20">
-                New contract
-              </Button>
-            </Link>
+            <Button href="/intake/listing" size="lg" className="bg-white text-brand hover:bg-stone-100">
+              New listing
+            </Button>
+            <Button
+              href="/intake/transaction"
+              size="lg"
+              variant="secondary"
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+            >
+              New contract
+            </Button>
           </div>
         </div>
 

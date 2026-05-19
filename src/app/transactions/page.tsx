@@ -18,12 +18,10 @@ export default async function TransactionsPage() {
         title="Transactions"
         description={`${transactions.length} contract${transactions.length === 1 ? "" : "s"} in the system.`}
       >
-        <Link href="/intake/transaction">
-          <Button>
-            <Plus className="h-4 w-4" />
-            New contract
-          </Button>
-        </Link>
+        <Button href="/intake/transaction">
+          <Plus className="h-4 w-4" />
+          New contract
+        </Button>
       </PageHeader>
 
       {transactions.length === 0 ? (

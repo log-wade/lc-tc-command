@@ -1,8 +1,21 @@
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { forwardRef } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "success";
 type Size = "sm" | "md" | "lg";
+
+const buttonClassName = (
+  variant: Variant,
+  size: Size,
+  className?: string
+) =>
+  cn(
+    "inline-flex items-center justify-center rounded-lg font-medium transition-all disabled:pointer-events-none disabled:opacity-50",
+    variants[variant],
+    sizes[size],
+    className
+  );
 
 const variants: Record<Variant, string> = {
   primary:
@@ -20,27 +33,28 @@ const sizes: Record<Size, string> = {
   lg: "h-12 px-6 text-base gap-2.5",
 };
 
-export const Button = forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: Variant;
-    size?: Size;
-  }
->(function Button(
-  { className, variant = "primary", size = "md", children, ...props },
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant;
+  size?: Size;
+  href?: string;
+};
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { className, variant = "primary", size = "md", children, href, ...props },
   ref
 ) {
+  const classes = buttonClassName(variant, size, className);
+
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    <button
-      ref={ref}
-      className={cn(
-        "inline-flex items-center justify-center rounded-lg font-medium transition-all disabled:pointer-events-none disabled:opacity-50",
-        variants[variant],
-        sizes[size],
-        className
-      )}
-      {...props}
-    >
+    <button ref={ref} className={classes} {...props}>
       {children}
     </button>
   );

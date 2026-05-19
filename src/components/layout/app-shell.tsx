@@ -221,7 +221,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const open = () => setMobileOpen(true);
@@ -277,19 +282,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3" data-tour="header-actions">
-            <Link href="/intake/listing" className="hidden sm:block">
-              <Button variant="secondary" size="sm">
-                <Plus className="h-4 w-4" />
-                Listing
-              </Button>
-            </Link>
-            <Link href="/intake/transaction">
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New contract</span>
-                <span className="sm:hidden">Contract</span>
-              </Button>
-            </Link>
+            <Button href="/intake/listing" variant="secondary" size="sm" className="hidden sm:inline-flex">
+              <Plus className="h-4 w-4" />
+              Listing
+            </Button>
+            <Button href="/intake/transaction" size="sm">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">New contract</span>
+              <span className="sm:hidden">Contract</span>
+            </Button>
           </div>
         </header>
         <main className="flex-1">{children}</main>

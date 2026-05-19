@@ -85,11 +85,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const currentStep = TOUR_STEPS[stepIndex];
 
-  // Navigate when the tour step changes — don't yank the user back if they click away.
+  // Navigate when the tour step changes — only if user is still on a tour page.
   useEffect(() => {
     if (!isActive || !currentStep?.route) return;
-    router.push(currentStep.route);
-  }, [isActive, currentStep?.id, currentStep?.route, router]);
+    if (!TOUR_ROUTES.has(pathname)) return;
+    if (pathname !== currentStep.route) {
+      router.push(currentStep.route);
+    }
+  }, [isActive, currentStep?.id, currentStep?.route, pathname, router]);
 
   // If they open another page (e.g. Email templates) during the tour, dismiss it.
   useEffect(() => {

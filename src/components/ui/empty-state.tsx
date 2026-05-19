@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Button } from "./button";
 
 export function EmptyState({
@@ -22,9 +21,9 @@ export function EmptyState({
       <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
       <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink-muted">{description}</p>
       {actionLabel && actionHref && (
-        <Link href={actionHref} className="mt-6">
-          <Button>{actionLabel}</Button>
-        </Link>
+        <Button href={actionHref} className="mt-6">
+          {actionLabel}
+        </Button>
       )}
     </div>
   );

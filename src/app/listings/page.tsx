@@ -18,12 +18,10 @@ export default async function ListingsPage() {
         title="Listings"
         description={`${listings.length} listing${listings.length === 1 ? "" : "s"} in the system.`}
       >
-        <Link href="/intake/listing">
-          <Button>
-            <Plus className="h-4 w-4" />
-            New listing
-          </Button>
-        </Link>
+        <Button href="/intake/listing">
+          <Plus className="h-4 w-4" />
+          New listing
+        </Button>
       </PageHeader>
 
       {listings.length === 0 ? (

@@ -26,7 +26,7 @@ export function TransactionWizard() {
     if (step < STEPS.length - 1) {
       const fd = new FormData(e.currentTarget);
       const partial = Object.fromEntries(fd.entries()) as Record<string, string>;
-      setPreview(partial);
+      setPreview((prev) => ({ ...prev, ...partial }));
       if (step === 0 && !partial.property_address?.trim()) {
         toast.error("Property address is required");
         return;
