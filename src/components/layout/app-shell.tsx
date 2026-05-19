@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,16 +19,18 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
+import { TourRestartButton } from "@/components/onboarding/tour-restart-button";
 
 const workNav = [
-  { href: "/", label: "Today", icon: LayoutDashboard, desc: "Your command center" },
-  { href: "/reviews", label: "Review queue", icon: ClipboardCheck, desc: "Approve before send" },
-  { href: "/inbox", label: "Inbox triage", icon: Inbox, desc: "Classify incoming mail" },
+  { href: "/", label: "Today", icon: LayoutDashboard, desc: "Your command center", tourId: "nav-today" },
+  { href: "/reviews", label: "Review queue", icon: ClipboardCheck, desc: "Approve before send", tourId: "nav-review" },
+  { href: "/inbox", label: "Inbox triage", icon: Inbox, desc: "Classify incoming mail", tourId: "nav-inbox" },
 ];
 
 const filesNav = [
-  { href: "/listings", label: "Listings", icon: Home },
-  { href: "/transactions", label: "Transactions", icon: FileText },
+  { href: "/listings", label: "Listings", icon: Home, tourId: "nav-listings" },
+  { href: "/transactions", label: "Transactions", icon: FileText, tourId: "nav-transactions" },
 ];
 
 const systemNav = [
@@ -43,6 +45,7 @@ function NavLink({
   desc,
   active,
   onClick,
+  tourId,
 }: {
   href: string;
   label: string;
@@ -50,11 +53,13 @@ function NavLink({
   desc?: string;
   active: boolean;
   onClick?: () => void;
+  tourId?: string;
 }) {
   return (
     <Link
       href={href}
       onClick={onClick}
+      data-tour={tourId}
       className={cn(
         "group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all",
         active
@@ -107,7 +112,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="space-y-6 p-3">
-        <div>
+        <div data-tour="start-here">
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
             Start here
           </p>
@@ -147,7 +152,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </nav>
         </div>
 
-        <div>
+        <div data-tour="nav-files">
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
             Active files
           </p>
@@ -184,6 +189,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <p className="text-sm font-medium text-stone-300">Carly Bryant</p>
         <p className="text-xs text-stone-500">Listing & Transaction Coordinator</p>
         <p className="mt-1 text-[11px] text-stone-600">TREC #723235-SA</p>
+        <TourRestartButton />
       </div>
     </div>
   );
@@ -192,7 +198,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    const open = () => setMobileOpen(true);
+    window.addEventListener("tour-open-sidebar", open);
+    return () => window.removeEventListener("tour-open-sidebar", open);
+  }, []);
+
   return (
+    <OnboardingProvider>
     <div className="flex min-h-screen">
       {/* Desktop sidebar */}
       <aside className="hidden w-[280px] shrink-0 flex-col bg-brand lg:flex">
@@ -238,7 +251,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3" data-tour="header-actions">
             <Link href="/intake/listing" className="hidden sm:block">
               <Button variant="secondary" size="sm">
                 <Plus className="h-4 w-4" />
@@ -257,5 +270,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1">{children}</main>
       </div>
     </div>
+    </OnboardingProvider>
   );
 }

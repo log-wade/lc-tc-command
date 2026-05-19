@@ -63,7 +63,7 @@ export default async function DashboardPage() {
       <TodayHero stats={stats} />
 
       <div className="mt-10 grid gap-8 lg:grid-cols-5">
-        <section className="animate-fade-up stagger-1 lg:col-span-3">
+        <section className="animate-fade-up stagger-1 lg:col-span-3" data-tour="needs-attention">
           <PageHeader
             title="Needs attention"
             description="Deadlines and reviews that should move before end of day."
