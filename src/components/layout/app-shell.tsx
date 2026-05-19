@@ -16,6 +16,7 @@ import {
   Mail,
   Sparkles,
   ChevronRight,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { OnboardingProvider } from "@/components/onboarding/onboarding-provider"
 import { TourRestartButton } from "@/components/onboarding/tour-restart-button";
 
 const workNav = [
+  { href: "/assistant", label: "Assistant", icon: Bot, desc: "AI chat & voice", tourId: "nav-assistant" },
   { href: "/", label: "Today", icon: LayoutDashboard, desc: "Your command center", tourId: "nav-today" },
   { href: "/reviews", label: "Review queue", icon: ClipboardCheck, desc: "Approve before send", tourId: "nav-review" },
   { href: "/inbox", label: "Inbox triage", icon: Inbox, desc: "Classify incoming mail", tourId: "nav-inbox" },
