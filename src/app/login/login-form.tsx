@@ -36,6 +36,11 @@ export function LoginForm() {
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
         <h1 className="text-2xl font-semibold text-white">LC/TC Command</h1>
         <p className="mt-1 text-sm text-zinc-400">Sign in to your coordination workspace</p>
+        {next.startsWith("/intake") && (
+          <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            Sign in to access listing and contract intake.
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm text-zinc-300">
