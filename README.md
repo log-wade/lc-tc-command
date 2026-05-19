@@ -10,7 +10,7 @@ Automated **Listing & Transaction Coordination** platform for Texas residential 
 | 2. Data | Supabase Postgres (memory fallback for demo) |
 | 3. Deadline Engine | Texas residential formulas from effective date |
 | 4. Communications | 10-template library + Resend email |
-| 5. Integrations | Email-first; MLS/DocuSign stubs for Phase 2–3 |
+| 5. Integrations | Adapter layer (MLS, DocuSign, ShowingTime, title) — live when API keys set |
 | 6. AI Agent | Claude — inbox triage, draft polish, wire-fraud P0 |
 | 7. Human-in-Loop | Review queue — go-live, comms, escalations |
 | 8. Audit | Full action log — broker dashboard |
@@ -58,7 +58,28 @@ vercel env pull .env.local
 vercel --prod
 ```
 
-Cron jobs (deadline reminders, Tuesday updates) are configured in `vercel.json`.
+Cron jobs (deadline reminders, Tuesday updates, review SLA) are configured in `vercel.json`.
+
+## Enterprise platform (Phases 1–5)
+
+After pulling, apply migration `004_enterprise_platform.sql` in the Supabase SQL editor (or `supabase db push`), then create the first admin:
+
+```bash
+export $(grep -v '^#' .env.local | xargs)
+npm run seed:admin -- you@example.com 'secure-password'
+```
+
+| Phase | Features |
+|-------|----------|
+| 1 | Supabase Auth, RLS, middleware, login, memory demo disabled in production |
+| 2 | File events, workflow runs, review SLA cron, inbound email webhook |
+| 3 | Integration adapters (`src/lib/integrations/`) |
+| 4 | AI policy guardrails, agent audit log, `/broker` dashboard |
+| 5 | Multi-tenant orgs, API keys, `/api/v1/listings` & `/api/v1/transactions` |
+
+Create an API key: `node scripts/create-api-key.mjs "Integration name"`
+
+Set `AUTH_DISABLED=true` only for local dev without login. Production requires a seeded user.
 
 ## Compliance Notes
 

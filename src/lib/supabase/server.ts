@@ -19,3 +19,12 @@ export function isDatabaseConfigured(): boolean {
       (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   );
 }
+
+/** Memory demo only outside production unless explicitly allowed */
+export function useMemoryStore(): boolean {
+  if (isDatabaseConfigured()) return false;
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_MEMORY_DEMO !== "true") {
+    return false;
+  }
+  return true;
+}

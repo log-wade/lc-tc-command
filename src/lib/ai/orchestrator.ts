@@ -6,6 +6,9 @@ import {
   executeAgentTool,
   type AgentToolName,
 } from "./tools";
+import { enforcePolicy } from "./policy";
+import { logAgentAudit } from "./agent-audit";
+import { getSessionProfile } from "../supabase/server-auth";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -31,6 +34,7 @@ export async function runAgentChat(
 ): Promise<{ reply: string; toolCalls: Array<{ name: string; result: unknown }> }> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   const toolCalls: Array<{ name: string; result: unknown }> = [];
+  const profile = await getSessionProfile();
 
   if (!apiKey) {
     return {
@@ -70,8 +74,41 @@ export async function runAgentChat(
       for (const block of toolUseBlocks) {
         if (block.type !== "tool_use") continue;
         const name = block.name as AgentToolName;
+        const policy = enforcePolicy({
+          action: `tool:${name}`,
+          toolName: name,
+          userRole: profile?.role,
+        });
+        if (!policy.allowed) {
+          const blocked = { error: policy.reason };
+          toolCalls.push({ name, result: blocked });
+          await logAgentAudit({
+            channel: "chat",
+            actionType: "tool_blocked",
+            toolName: name,
+            actorId: profile?.id,
+            policyResult: "blocked",
+            inputs: block.input as Record<string, unknown>,
+            outputs: blocked,
+          });
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: JSON.stringify(blocked),
+          });
+          continue;
+        }
         const result = await executeAgentTool(name, (block.input as Record<string, unknown>) ?? {});
         toolCalls.push({ name, result });
+        await logAgentAudit({
+          channel: "chat",
+          actionType: "tool_executed",
+          toolName: name,
+          actorId: profile?.id,
+          policyResult: "allowed",
+          inputs: block.input as Record<string, unknown>,
+          outputs: { ok: true },
+        });
         toolResults.push({
           type: "tool_result",
           tool_use_id: block.id,

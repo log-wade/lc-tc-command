@@ -1,4 +1,8 @@
-import { createServiceClient, isDatabaseConfigured } from "../supabase/server";
+import { createServiceClient, isDatabaseConfigured, useMemoryStore } from "../supabase/server";
+import { DEFAULT_ORG_ID } from "../supabase/server-auth";
+import { getTemplateById } from "../templates/catalog";
+import { sendEmail } from "../email/resend";
+import { recordFileEvent } from "../events/file-events";
 import { memoryStore } from "../store/memory-store";
 import {
   computeTransactionDeadlines,
@@ -8,7 +12,7 @@ import { logAudit } from "../audit";
 import type { DashboardStats, Listing, Transaction } from "../types";
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const [listings, transactions, reviews, deadlines] = await Promise.all([
@@ -42,7 +46,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getListings(): Promise<Listing[]> {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data } = await supabase.from("listings").select("*").order("created_at", { ascending: false });
@@ -53,7 +57,7 @@ export async function getListings(): Promise<Listing[]> {
 }
 
 export async function getTransactions(): Promise<Transaction[]> {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data } = await supabase
@@ -67,7 +71,7 @@ export async function getTransactions(): Promise<Transaction[]> {
 }
 
 export async function getListing(id: string): Promise<Listing | null> {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data } = await supabase.from("listings").select("*").eq("id", id).single();
@@ -78,7 +82,7 @@ export async function getListing(id: string): Promise<Listing | null> {
 }
 
 export async function getTransaction(id: string): Promise<Transaction | null> {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data } = await supabase.from("transactions").select("*").eq("id", id).single();
@@ -89,7 +93,7 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
 }
 
 export async function getDeadlines(fileType?: string, fileId?: string) {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       let q = supabase.from("deadlines").select("*").order("due_at");
@@ -103,7 +107,7 @@ export async function getDeadlines(fileType?: string, fileId?: string) {
 }
 
 export async function getReviewQueue() {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data } = await supabase
@@ -118,7 +122,7 @@ export async function getReviewQueue() {
 }
 
 export async function getAuditLogs(limit = 50) {
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data } = await supabase
@@ -151,11 +155,12 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     listing_agent_id: payload.listing_agent_id as string | undefined,
     status: "intake" as const,
     compliance_status: "pending",
+    organization_id: DEFAULT_ORG_ID,
   };
 
   let listing: Listing;
 
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data, error } = await supabase.from("listings").insert(listingData).select().single();
@@ -175,6 +180,14 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     action_type: "listing_intake_created",
     inputs: payload,
     outcome: "success",
+  });
+
+  await recordFileEvent({
+    fileType: "listing",
+    fileId: listing.id,
+    eventType: "listing.created",
+    actorType: "system",
+    payload: listingData,
   });
 
   memoryStore.addReview({
@@ -212,11 +225,12 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
     supervising_agent_id: payload.supervising_agent_id as string | undefined,
     status: "intake" as const,
     compliance_status: "pending",
+    organization_id: DEFAULT_ORG_ID,
   };
 
   let transaction: Transaction;
 
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       const { data, error } = await supabase.from("transactions").insert(txnData).select().single();
@@ -261,6 +275,14 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
     outcome: "success",
   });
 
+  await recordFileEvent({
+    fileType: "transaction",
+    fileId: transaction.id,
+    eventType: "transaction.created",
+    actorType: "system",
+    payload: txnData,
+  });
+
   memoryStore.addReview({
     file_type: "transaction",
     file_id: transaction.id,
@@ -282,12 +304,12 @@ export async function approveGoLive(listingId: string, agentId: string) {
     actual_list_date: new Date().toISOString().split("T")[0],
   };
 
-  if (isDatabaseConfigured()) {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
       await supabase.from("listings").update(patch).eq("id", listingId);
     }
-  } else {
+  } else if (useMemoryStore()) {
     memoryStore.updateListing(listingId, patch);
   }
 
@@ -311,9 +333,23 @@ export async function approveGoLive(listingId: string, agentId: string) {
 }
 
 export async function resolveReview(reviewId: string, approved: boolean, notes?: string) {
-  if (isDatabaseConfigured()) {
+  let reviewPayload: Record<string, unknown> | undefined;
+  let fileType: string | undefined;
+  let fileId: string | undefined;
+
+  if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
+      const { data: review } = await supabase
+        .from("review_queue")
+        .select("*")
+        .eq("id", reviewId)
+        .single();
+
+      reviewPayload = (review?.payload as Record<string, unknown>) ?? undefined;
+      fileType = review?.file_type as string | undefined;
+      fileId = review?.file_id as string | undefined;
+
       await supabase
         .from("review_queue")
         .update({
@@ -323,8 +359,37 @@ export async function resolveReview(reviewId: string, approved: boolean, notes?:
         })
         .eq("id", reviewId);
     }
-  } else {
+  } else if (useMemoryStore()) {
+    const review = memoryStore.reviews().find((r) => r.id === reviewId);
+    reviewPayload = review?.payload as Record<string, unknown> | undefined;
+    fileType = review?.file_type as string | undefined;
+    fileId = review?.file_id as string | undefined;
     memoryStore.resolveReview(reviewId, approved, notes);
+  }
+
+  if (approved && reviewPayload?.template_id) {
+    const template = getTemplateById(String(reviewPayload.template_id));
+    const alertTo = process.env.ALERT_EMAIL;
+    if (template && alertTo) {
+      await sendEmail({
+        to: [alertTo],
+        subject: template.subject,
+        body: template.body,
+        fileType,
+        fileId,
+        templateId: template.id,
+      });
+    }
+  }
+
+  if (fileId && fileType && (fileType === "listing" || fileType === "transaction")) {
+    await recordFileEvent({
+      fileType,
+      fileId,
+      eventType: approved ? "review.approved" : "review.rejected",
+      actorType: "human",
+      payload: { reviewId, notes },
+    });
   }
 
   await logAudit({

@@ -8,6 +8,8 @@ import {
   getReviewQueue,
 } from "../data";
 import type { WorkflowId } from "./workflows";
+import { enforcePolicy } from "./policy";
+import { logAgentAudit } from "./agent-audit";
 
 export type AgentToolName =
   | "get_dashboard_summary"
@@ -45,6 +47,19 @@ export async function executeAgentTool(
   name: AgentToolName,
   args: Record<string, unknown>
 ): Promise<unknown> {
+  const policy = enforcePolicy({ action: `tool:${name}`, toolName: name });
+  if (!policy.allowed) {
+    await logAgentAudit({
+      channel: "tool",
+      actionType: name,
+      toolName: name,
+      policyResult: "blocked",
+      inputs: args,
+      outputs: { error: policy.reason },
+    });
+    return { error: policy.reason };
+  }
+
   switch (name) {
     case "get_dashboard_summary": {
       const stats = await getDashboardStats();

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Newsreader } from "next/font/google";
-import { AppShell } from "@/components/layout/app-shell";
+import { ConditionalShell } from "@/components/layout/conditional-shell";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${display.variable}`}>
       <body className="min-h-screen antialiased">
-        <AppShell>{children}</AppShell>
+        <ConditionalShell>{children}</ConditionalShell>
         <Toaster position="top-right" richColors closeButton />
       </body>
     </html>

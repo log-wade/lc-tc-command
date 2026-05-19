@@ -17,7 +17,10 @@ import {
   Sparkles,
   ChevronRight,
   Bot,
+  BarChart3,
+  LogOut,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
@@ -36,9 +39,28 @@ const filesNav = [
 ];
 
 const systemNav = [
+  { href: "/broker", label: "Broker dashboard", icon: BarChart3 },
   { href: "/templates", label: "Email templates", icon: Mail },
   { href: "/audit", label: "Audit log", icon: Shield },
 ];
+
+function SignOutButton() {
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }
+  return (
+    <button
+      type="button"
+      onClick={signOut}
+      className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-stone-400 transition hover:bg-white/5 hover:text-stone-200"
+    >
+      <LogOut className="h-3.5 w-3.5" />
+      Sign out
+    </button>
+  );
+}
 
 function NavLink({
   href,
@@ -192,6 +214,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <p className="text-xs text-stone-500">Listing & Transaction Coordinator</p>
         <p className="mt-1 text-[11px] text-stone-600">TREC #723235-SA</p>
         <TourRestartButton />
+        <SignOutButton />
       </div>
     </div>
   );

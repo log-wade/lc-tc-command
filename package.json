@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "agent:setup": "node scripts/setup-elevenlabs-agent.mjs"
+    "agent:setup": "node scripts/setup-elevenlabs-agent.mjs",
+    "seed:admin": "node scripts/seed-admin-user.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
