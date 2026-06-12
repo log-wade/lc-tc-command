@@ -17,7 +17,8 @@ export function GoLiveButton({ listingId }: { listingId: string }) {
     const res = await fetch(`/api/listings/${listingId}/go-live`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ agent_id: "agent-admin" }),
+      credentials: "include",
+      body: JSON.stringify({}),
     });
     setLoading(false);
     if (!res.ok) {

@@ -37,6 +37,18 @@ export type SessionProfile = {
 
 export const DEFAULT_ORG_ID = "a0000000-0000-4000-8000-000000000001";
 
+/** Seeded coordinator agent (Carly Bryant) — valid FK for go-live approval in Postgres */
+export const COORDINATOR_AGENT_ID = "a0000000-0000-4000-8000-000000000002";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Map demo/memory ids to seeded UUIDs so Postgres FK constraints pass */
+export function resolveAgentId(agentId?: string | null): string {
+  if (agentId && UUID_RE.test(agentId)) return agentId;
+  return COORDINATOR_AGENT_ID;
+}
+
 export async function getSessionProfile(): Promise<SessionProfile | null> {
   if (process.env.AUTH_DISABLED === "true") {
     return {

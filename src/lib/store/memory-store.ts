@@ -172,6 +172,12 @@ export const memoryStore = {
     transactions.push(txn);
     return txn;
   },
+  updateTransaction: (id: string, patch: Partial<Transaction>) => {
+    const i = transactions.findIndex((t) => t.id === id);
+    if (i < 0) return null;
+    transactions[i] = { ...transactions[i], ...patch };
+    return transactions[i];
+  },
 
   deadlines: (fileType?: string, fileId?: string) => {
     seedDeadlines();

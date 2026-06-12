@@ -51,6 +51,7 @@ export interface Listing {
 
 export interface Transaction {
   id: string;
+  linked_listing_id?: string;
   property_address: string;
   side: "sell" | "buy" | "both";
   status: TransactionStatus;

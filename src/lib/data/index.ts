@@ -1,5 +1,5 @@
 import { createServiceClient, isDatabaseConfigured, useMemoryStore } from "../supabase/server";
-import { DEFAULT_ORG_ID } from "../supabase/server-auth";
+import { DEFAULT_ORG_ID, resolveAgentId } from "../supabase/server-auth";
 import { getTemplateById } from "../templates/catalog";
 import { sendEmail } from "../email/resend";
 import { recordFileEvent } from "../events/file-events";
@@ -136,6 +136,79 @@ export async function getAuditLogs(limit = 50) {
   return memoryStore.auditLogs().slice(0, limit);
 }
 
+type ReviewQueueItem = {
+  file_type: "listing" | "transaction";
+  file_id: string;
+  item_type: string;
+  priority: string;
+  title: string;
+  payload: Record<string, unknown>;
+};
+
+async function queueReview(item: ReviewQueueItem): Promise<void> {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
+    const supabase = createServiceClient();
+    if (supabase) {
+      const { error } = await supabase.from("review_queue").insert({
+        ...item,
+        status: "pending",
+        organization_id: DEFAULT_ORG_ID,
+      });
+      if (error) throw new Error(error.message);
+      return;
+    }
+  }
+  memoryStore.addReview(item);
+}
+
+async function ensureSellSideTransaction(listing: Listing, agentId: string): Promise<Transaction> {
+  const txnData = {
+    linked_listing_id: listing.id,
+    property_address: listing.property_address,
+    side: "sell" as const,
+    status: "active" as const,
+    mls_number: listing.mls_number,
+    supervising_agent_id: listing.listing_agent_id ?? agentId,
+    compliance_status: "approved",
+    organization_id: DEFAULT_ORG_ID,
+  };
+
+  if (!useMemoryStore() && isDatabaseConfigured()) {
+    const supabase = createServiceClient();
+    if (supabase) {
+      const { data: existing } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("linked_listing_id", listing.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { data, error } = await supabase
+          .from("transactions")
+          .update({ status: "active", property_address: listing.property_address })
+          .eq("id", existing.id)
+          .select()
+          .single();
+        if (error) throw new Error(error.message);
+        return data as Transaction;
+      }
+
+      const { data, error } = await supabase.from("transactions").insert(txnData).select().single();
+      if (error) throw new Error(error.message);
+      return data as Transaction;
+    }
+  }
+
+  const existing = memoryStore
+    .transactions()
+    .find((t) => t.linked_listing_id === listing.id);
+  if (existing) {
+    return memoryStore.updateTransaction(existing.id, { status: "active" }) ?? existing;
+  }
+
+  return memoryStore.createTransaction(txnData);
+}
+
 export async function createListingIntake(payload: Record<string, unknown>): Promise<Listing> {
   const listingData = {
     property_address: String(payload.property_address ?? ""),
@@ -190,7 +263,7 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     payload: listingData,
   });
 
-  memoryStore.addReview({
+  await queueReview({
     file_type: "listing",
     file_id: listing.id,
     item_type: "communication",
@@ -283,7 +356,7 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
     payload: txnData,
   });
 
-  memoryStore.addReview({
+  await queueReview({
     file_type: "transaction",
     file_id: transaction.id,
     item_type: "communication",
@@ -296,10 +369,16 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
 }
 
 export async function approveGoLive(listingId: string, agentId: string) {
+  const resolvedAgentId = resolveAgentId(agentId);
+  const listing = await getListing(listingId);
+  if (!listing) {
+    throw new Error("Listing not found");
+  }
+
   const patch = {
     go_live_approved: true,
     go_live_approved_at: new Date().toISOString(),
-    go_live_approved_by: agentId,
+    go_live_approved_by: resolvedAgentId,
     status: "active" as const,
     actual_list_date: new Date().toISOString().split("T")[0],
   };
@@ -307,29 +386,44 @@ export async function approveGoLive(listingId: string, agentId: string) {
   if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
     if (supabase) {
-      await supabase.from("listings").update(patch).eq("id", listingId);
+      const { error } = await supabase.from("listings").update(patch).eq("id", listingId);
+      if (error) throw new Error(error.message);
     }
   } else if (useMemoryStore()) {
     memoryStore.updateListing(listingId, patch);
   }
 
+  const updatedListing: Listing = { ...listing, ...patch };
+  const transaction = await ensureSellSideTransaction(updatedListing, resolvedAgentId);
+
   await logAudit({
     actor_type: "human",
-    actor_id: agentId,
+    actor_id: resolvedAgentId,
     file_type: "listing",
     file_id: listingId,
     action_type: "go_live_approved",
     outcome: "success",
   });
 
-  memoryStore.addReview({
+  await recordFileEvent({
+    fileType: "transaction",
+    fileId: transaction.id,
+    eventType: "transaction.created_from_go_live",
+    actorType: "human",
+    actorId: resolvedAgentId,
+    payload: { listing_id: listingId, linked_listing_id: listingId },
+  });
+
+  await queueReview({
     file_type: "listing",
     file_id: listingId,
-    item_type: "communication",
+    item_type: "go_live",
     priority: "P2",
     title: "Send Template 3 — We Are Live",
     payload: { template_id: "tpl-3", listing_id: listingId },
   });
+
+  return { listing: updatedListing, transaction };
 }
 
 export async function resolveReview(reviewId: string, approved: boolean, notes?: string) {
