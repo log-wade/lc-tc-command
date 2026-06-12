@@ -32,7 +32,7 @@ export function DeadlineRow({
       <span
         className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-          overdue ? "bg-urgent/10 text-urgent" : dueToday ? "bg-amber-100 text-warning" : "bg-stone-100 text-ink-muted"
+          overdue ? "bg-urgent/10 text-urgent" : dueToday ? "bg-brand-peach/25 text-warning" : "bg-brand-bg text-ink-muted"
         )}
       >
         <Icon className="h-4 w-4" />

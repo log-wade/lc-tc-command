@@ -119,48 +119,45 @@ export function OnboardingTour({
       aria-modal
       aria-labelledby="tour-title"
     >
-      {/* Visual backdrop only — clicks pass through to the app */}
-      <div className="pointer-events-none absolute inset-0 bg-stone-900/70 backdrop-blur-[2px]" />
+      <div className="pointer-events-none absolute inset-0 bg-brand-text/60 backdrop-blur-[2px]" />
 
-      {/* Spotlight cutout */}
       {rect && !isCenter && (
         <div
-          className="pointer-events-none absolute rounded-xl ring-4 ring-amber-400/80 transition-all duration-300"
+          className="pointer-events-none absolute rounded-xl ring-4 ring-brand-coral/70 transition-all duration-300"
           style={{
             top: rect.top,
             left: rect.left,
             width: rect.width,
             height: rect.height,
-            boxShadow: "0 0 0 9999px rgba(15, 28, 46, 0.72)",
+            boxShadow: "0 0 0 9999px rgba(74, 71, 69, 0.55)",
             zIndex: 10001,
           }}
         />
       )}
 
-      {/* Tooltip card */}
       <div style={tooltipStyle} className="pointer-events-auto animate-fade-up">
-        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl">
-          <div className="h-1 bg-stone-100">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-[var(--shadow-pop)]">
+          <div className="h-1 bg-brand-bg">
             <div
-              className="h-full bg-[var(--color-accent)] transition-all duration-300"
+              className="h-full bg-brand-coral transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
           <div className="p-5 sm:p-6">
             <div className="mb-3 flex items-start justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal">
                 Step {stepIndex + 1} of {totalSteps}
               </p>
               <button
                 type="button"
                 onClick={onSkip}
-                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+                className="rounded-lg p-1 text-ink-muted hover:bg-brand-bg hover:text-ink"
                 aria-label="Skip tour"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <h2 id="tour-title" className="font-display text-xl font-semibold text-ink">
+            <h2 id="tour-title" className="font-display text-xl font-bold text-ink">
               {step.title}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">{step.body}</p>
@@ -168,7 +165,7 @@ export function OnboardingTour({
               <button
                 type="button"
                 onClick={onSkip}
-                className="text-sm text-ink-muted hover:text-ink"
+                className="text-sm text-ink-muted hover:text-brand-coral"
               >
                 Skip tour
               </button>

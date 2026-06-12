@@ -11,7 +11,7 @@ const buttonClassName = (
   className?: string
 ) =>
   cn(
-    "inline-flex items-center justify-center rounded-lg font-medium transition-all disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center rounded-xl font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-hero/40 focus-visible:ring-offset-2",
     variants[variant],
     sizes[size],
     className
@@ -19,12 +19,12 @@ const buttonClassName = (
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-[var(--color-brand)] text-white shadow-sm hover:bg-[var(--color-brand-muted)] active:scale-[0.98]",
+    "rounded-full bg-brand-coral font-semibold text-white shadow-pop hover:bg-brand-coral/90 hover:shadow-pop active:scale-[0.98]",
   secondary:
-    "bg-white text-ink border border-border shadow-sm hover:bg-stone-50",
-  ghost: "text-ink-muted hover:bg-stone-100 hover:text-ink",
-  danger: "bg-[var(--color-urgent)] text-white hover:bg-red-700",
-  success: "bg-[var(--color-success)] text-white hover:bg-emerald-700",
+    "border border-border bg-white text-ink shadow-sm hover:border-brand-hero/40 hover:text-brand-hero",
+  ghost: "text-ink-muted hover:bg-brand-bg hover:text-ink",
+  danger: "bg-urgent text-white hover:bg-red-700",
+  success: "bg-success text-white hover:bg-emerald-700",
 };
 
 const sizes: Record<Size, string> = {

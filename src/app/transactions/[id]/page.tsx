@@ -29,7 +29,7 @@ export default async function TransactionDetailPage({
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <Link
         href="/transactions"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-accent"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-brand-coral"
       >
         <ArrowLeft className="h-4 w-4" />
         All transactions
@@ -90,7 +90,7 @@ export default async function TransactionDetailPage({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-stone-100 pb-2">
+    <div className="flex justify-between gap-4 border-b border-border pb-2">
       <span className="text-ink-muted">{label}</span>
       <span className="font-medium">{value}</span>
     </div>

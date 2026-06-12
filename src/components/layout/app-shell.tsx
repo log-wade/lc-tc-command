@@ -14,7 +14,6 @@ import {
   Menu,
   X,
   Mail,
-  Sparkles,
   ChevronRight,
   Bot,
   BarChart3,
@@ -23,6 +22,7 @@ import {
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 import { TourRestartButton } from "@/components/onboarding/tour-restart-button";
 
@@ -54,7 +54,7 @@ function SignOutButton() {
     <button
       type="button"
       onClick={signOut}
-      className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-stone-400 transition hover:bg-white/5 hover:text-stone-200"
+      className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-muted transition hover:bg-white/70 hover:text-ink"
     >
       <LogOut className="h-3.5 w-3.5" />
       Sign out
@@ -87,14 +87,16 @@ function NavLink({
       className={cn(
         "group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all",
         active
-          ? "bg-white/10 text-white shadow-inner ring-1 ring-white/10"
-          : "text-stone-400 hover:bg-white/5 hover:text-stone-100"
+          ? "bg-white text-ink shadow-sm ring-1 ring-sidebar-border"
+          : "text-ink-muted hover:bg-white/60 hover:text-ink"
       )}
     >
       <span
         className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors",
-          active ? "bg-accent/20 text-amber-300" : "bg-white/5 text-stone-500 group-hover:text-stone-300"
+          active
+            ? "bg-brand-coral/15 text-brand-coral"
+            : "bg-white/50 text-ink-muted group-hover:bg-white group-hover:text-brand-hero"
         )}
       >
         <Icon className="h-4 w-4" />
@@ -102,12 +104,12 @@ function NavLink({
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium leading-tight">{label}</span>
         {desc && (
-          <span className="mt-0.5 block truncate text-[11px] text-stone-500 group-hover:text-stone-400">
+          <span className="mt-0.5 block truncate text-[11px] text-ink-muted/80 group-hover:text-ink-muted">
             {desc}
           </span>
         )}
       </span>
-      {active && <ChevronRight className="h-4 w-4 shrink-0 text-amber-400/80" />}
+      {active && <ChevronRight className="h-4 w-4 shrink-0 text-brand-coral" />}
     </Link>
   );
 }
@@ -119,32 +121,23 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex min-h-full flex-col">
-      <div className="border-b border-white/10 px-4 py-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/20 ring-1 ring-amber-500/30">
-            <Sparkles className="h-5 w-5 text-amber-400" />
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400/90">
-              KW Austin Northwest
-            </p>
-            <h1 className="font-display text-lg font-semibold leading-tight text-white">
-              LC/TC Command
-            </h1>
-          </div>
-        </div>
+      <div className="border-b border-sidebar-border px-4 py-5">
+        <BrandMark />
+        <p className="mt-3 text-[11px] leading-snug text-ink-muted">
+          Keller Williams Austin Northwest
+        </p>
       </div>
 
       <div className="space-y-6 p-3">
         <div data-tour="start-here">
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-brand-teal">
             Start here
           </p>
           <div className="grid gap-2">
             <Link
               href="/intake/listing"
               onClick={onNavigate}
-              className="flex items-center gap-2 rounded-xl bg-accent/15 px-3 py-2.5 text-sm font-medium text-amber-100 ring-1 ring-amber-500/20 transition hover:bg-accent/25"
+              className="flex items-center gap-2 rounded-xl bg-brand-coral px-3 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#e04f50]"
             >
               <Plus className="h-4 w-4" />
               New listing intake
@@ -152,7 +145,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <Link
               href="/intake/transaction"
               onClick={onNavigate}
-              className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-stone-200 ring-1 ring-white/10 transition hover:bg-white/10"
+              className="flex items-center gap-2 rounded-xl border border-sidebar-border bg-white px-3 py-2.5 text-sm font-medium text-ink shadow-sm transition hover:border-brand-hero/40 hover:text-brand-hero"
             >
               <Plus className="h-4 w-4" />
               New contract intake
@@ -161,7 +154,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
 
         <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">
             Your day
           </p>
           <nav className="space-y-0.5">
@@ -177,7 +170,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
 
         <div data-tour="nav-files">
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">
             Active files
           </p>
           <nav className="space-y-0.5">
@@ -193,7 +186,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
 
         <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">
             System
           </p>
           <nav className="space-y-0.5">
@@ -209,10 +202,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="mt-auto border-t border-white/10 p-4">
-        <p className="text-sm font-medium text-stone-300">Carly Bryant</p>
-        <p className="text-xs text-stone-500">Listing & Transaction Coordinator</p>
-        <p className="mt-1 text-[11px] text-stone-600">TREC #723235-SA</p>
+      <div className="mt-auto border-t border-sidebar-border p-4">
+        <p className="text-sm font-medium text-ink">Carly Bryant</p>
+        <p className="text-xs text-ink-muted">Listing & Transaction Coordinator</p>
+        <p className="mt-1 text-[11px] text-ink-muted/80">TREC #723235-SA</p>
         <TourRestartButton />
         <SignOutButton />
       </div>
@@ -237,24 +230,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <OnboardingProvider>
     <div className="flex min-h-screen">
-      {/* Desktop sidebar */}
-      <aside className="hidden w-[280px] shrink-0 flex-col bg-brand lg:flex">
+      <aside className="hidden w-[280px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <SidebarContent />
         </div>
       </aside>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-brand-text/40 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-hidden
         />
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-brand transition-transform duration-300 lg:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300 lg:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -262,7 +253,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="rounded-lg p-2 text-stone-400 hover:bg-white/10 hover:text-white"
+            className="rounded-lg p-2 text-ink-muted hover:bg-white/70 hover:text-ink"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -276,7 +267,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="rounded-lg p-2 text-ink-muted hover:bg-stone-100 lg:hidden"
+            className="rounded-lg p-2 text-ink-muted hover:bg-brand-bg lg:hidden"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />

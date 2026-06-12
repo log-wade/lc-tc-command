@@ -10,7 +10,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-stone-200/80 bg-white shadow-sm",
+        "rounded-2xl border border-border bg-surface-card shadow-[var(--shadow-card)]",
         className
       )}
     >
@@ -27,7 +27,7 @@ export function CardHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("border-b border-stone-100 px-5 py-4", className)}>
+    <div className={cn("border-b border-border px-5 py-4", className)}>
       {children}
     </div>
   );

@@ -23,8 +23,8 @@ export function WizardSteps({
                   className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition",
                     done && "bg-success text-white",
-                    active && "bg-brand text-white ring-4 ring-brand/10",
-                    !done && !active && "bg-stone-200 text-stone-500"
+                    active && "bg-brand-coral text-white ring-4 ring-brand-coral/15",
+                    !done && !active && "bg-border text-ink-muted"
                   )}
                 >
                   {done ? <Check className="h-4 w-4" /> : i + 1}
@@ -42,7 +42,7 @@ export function WizardSteps({
                 <div
                   className={cn(
                     "mx-1 hidden h-0.5 flex-1 sm:block",
-                    done ? "bg-success" : "bg-stone-200"
+                    done ? "bg-success" : "bg-border"
                   )}
                 />
               )}

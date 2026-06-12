@@ -73,15 +73,15 @@ export default async function DashboardPage() {
               <Link
                 key={r.id}
                 href="/reviews"
-                className="flex items-center gap-3 rounded-xl border border-amber-200/60 bg-warning-soft px-4 py-3 transition hover:shadow-sm"
+                className="flex items-center gap-3 rounded-xl border border-brand-peach/50 bg-warning-soft px-4 py-3 transition hover:shadow-sm"
               >
-                <span className="rounded-md bg-amber-200/80 px-2 py-0.5 text-xs font-bold text-amber-900">
+                <span className="rounded-md bg-brand-peach/40 px-2 py-0.5 text-xs font-bold text-ink">
                   {r.priority ?? "P2"}
                 </span>
                 <span className="flex-1 truncate text-sm font-medium text-ink">
                   {r.title}
                 </span>
-                <ArrowRight className="h-4 w-4 text-amber-700" />
+                <ArrowRight className="h-4 w-4 text-brand-coral" />
               </Link>
             ))}
             {pendingDeadlines.map((d) => (
