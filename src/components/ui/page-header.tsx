@@ -22,7 +22,7 @@ export function PageHeader({
     >
       <div className="animate-fade-up">
         {eyebrow && (
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-brand-teal">
             {eyebrow}
           </p>
         )}

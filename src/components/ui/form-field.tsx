@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const inputClass =
-  "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-ink shadow-sm transition placeholder:text-stone-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
+  "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-ink shadow-sm transition placeholder:text-ink-muted/60 focus:border-brand-hero focus:outline-none focus:ring-2 focus:ring-brand-hero/20";
 
 export function FormField({
   label,
@@ -78,7 +78,7 @@ export function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-surface-card p-6 shadow-sm">
+    <section className="rounded-2xl border border-border bg-surface-card p-6 shadow-[var(--shadow-card)]">
       <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
       {description && <p className="mt-1 text-sm text-ink-muted">{description}</p>}
       <div className="mt-5 grid gap-5 sm:grid-cols-2">{children}</div>

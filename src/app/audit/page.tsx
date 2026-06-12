@@ -8,17 +8,17 @@ export default async function AuditPage() {
   const logs = await getAuditLogs(100);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <PageHeader
         eyebrow="Compliance"
         title="Audit log"
         description="Every system action — broker-exportable for TREC and E&O review."
       />
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-[var(--shadow-card)]">
         <div className="max-h-[70vh] overflow-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            <thead className="sticky top-0 bg-sidebar text-left text-xs font-semibold uppercase tracking-wide text-brand-teal">
               <tr>
                 <th className="px-4 py-3">When</th>
                 <th className="px-4 py-3">Who</th>
@@ -35,12 +35,17 @@ export default async function AuditPage() {
                 </tr>
               ) : (
                 logs.map((log: Record<string, unknown>) => (
-                  <tr key={String(log.id)} className="border-t border-stone-100 hover:bg-stone-50/80">
+                  <tr
+                    key={String(log.id)}
+                    className="border-t border-border transition hover:bg-brand-bg/60"
+                  >
                     <td className="whitespace-nowrap px-4 py-3 text-ink-muted">
                       {formatDate(String(log.created_at))}
                     </td>
-                    <td className="px-4 py-3 capitalize">{String(log.actor_type)}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{String(log.action_type)}</td>
+                    <td className="px-4 py-3 capitalize text-ink">{String(log.actor_type)}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-brand-hero">
+                      {String(log.action_type)}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-md px-2 py-0.5 text-xs font-medium ${
@@ -48,7 +53,7 @@ export default async function AuditPage() {
                             ? "bg-success-soft text-success"
                             : log.outcome === "escalated"
                               ? "bg-urgent-soft text-urgent"
-                              : "bg-stone-100 text-ink-muted"
+                              : "bg-brand-bg text-ink-muted"
                         }`}
                       >
                         {String(log.outcome ?? "—")}

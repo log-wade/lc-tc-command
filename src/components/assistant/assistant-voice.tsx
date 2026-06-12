@@ -53,14 +53,14 @@ function AssistantVoiceInner() {
         className={cn(
           "mb-6 flex h-28 w-28 items-center justify-center rounded-full transition-all duration-500",
           connected
-            ? "bg-accent/20 ring-4 ring-accent/40 animate-pulse"
-            : "bg-stone-100 ring-2 ring-border"
+            ? "bg-brand-coral/15 ring-4 ring-brand-coral/30 animate-pulse"
+            : "bg-brand-bg ring-2 ring-border"
         )}
       >
         {connecting ? (
-          <Loader2 className="h-10 w-10 animate-spin text-accent" />
+          <Loader2 className="h-10 w-10 animate-spin text-brand-coral" />
         ) : connected ? (
-          <Mic className="h-10 w-10 text-accent" />
+          <Mic className="h-10 w-10 text-brand-coral" />
         ) : (
           <MicOff className="h-10 w-10 text-ink-muted" />
         )}

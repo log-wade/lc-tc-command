@@ -154,7 +154,7 @@ export function TransactionWizard() {
             All Texas residential deadlines will be calculated automatically. Template 6 (Congrats
             &amp; What to Expect) queues for your review.
           </p>
-          <ul className="mt-6 space-y-2 rounded-xl bg-stone-50 p-4 text-sm">
+          <ul className="mt-6 space-y-2 rounded-xl bg-brand-bg p-4 text-sm">
             <li>
               <span className="text-ink-muted">Property: </span>
               <strong>{formData.property_address || "—"}</strong>

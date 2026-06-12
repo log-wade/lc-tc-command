@@ -62,7 +62,7 @@ export function AssistantChat() {
             <span
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                m.role === "user" ? "bg-brand text-white" : "bg-accent-soft text-accent"
+                m.role === "user" ? "bg-brand-coral text-white" : "bg-accent-soft text-brand-coral"
               )}
             >
               {m.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
@@ -71,8 +71,8 @@ export function AssistantChat() {
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
                 m.role === "user"
-                  ? "bg-brand text-white"
-                  : "bg-stone-50 text-ink ring-1 ring-border"
+                  ? "bg-brand-coral text-white"
+                  : "bg-brand-bg text-ink ring-1 ring-border"
               )}
             >
               {m.content}
@@ -101,7 +101,7 @@ export function AssistantChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about deadlines, reviews, templates…"
-            className="flex-1 rounded-xl border border-border bg-white px-4 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            className="flex-1 rounded-xl border border-border bg-white px-4 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-hero/40"
             disabled={loading}
           />
           <Button type="submit" disabled={loading || !input.trim()} size="sm">

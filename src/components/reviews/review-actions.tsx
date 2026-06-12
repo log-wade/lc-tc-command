@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export function ReviewActions({ reviewId }: { reviewId: string }) {
@@ -22,20 +21,22 @@ export function ReviewActions({ reviewId }: { reviewId: string }) {
 
   return (
     <div className="flex gap-2">
-      <button
-        onClick={() => resolve(true)}
+      <Button
+        size="sm"
+        variant="success"
         disabled={loading}
-        className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        onClick={() => void resolve(true)}
       >
         Approve
-      </button>
-      <button
-        onClick={() => resolve(false)}
+      </Button>
+      <Button
+        size="sm"
+        variant="secondary"
         disabled={loading}
-        className="rounded border border-stone-300 px-3 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+        onClick={() => void resolve(false)}
       >
         Reject
-      </button>
+      </Button>
     </div>
   );
 }

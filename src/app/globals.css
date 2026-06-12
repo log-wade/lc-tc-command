@@ -1,24 +1,54 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-sans), system-ui, sans-serif;
-  --font-display: var(--font-display), Georgia, serif;
+  --font-sans: var(--font-sans), "DM Sans", system-ui, sans-serif;
+  --font-display: var(--font-display), "Fredoka", "DM Sans", sans-serif;
+  --font-mono: var(--font-mono), "DM Mono", monospace;
+  --font-script: var(--font-script), "Dancing Script", cursive;
 
-  --color-brand: #0f1c2e;
-  --color-brand-muted: #1e3a5f;
-  --color-accent: #b8860b;
-  --color-accent-soft: #f5ecd4;
-  --color-surface: #f7f5f1;
+  /* Do Kind brand palette */
+  --color-brand-bg: #faf7f0;
+  --color-brand-text: #4a4745;
+  --color-brand-hero: #7fa8c4;
+  --color-brand-peach: #f4a77a;
+  --color-brand-pink: #f4aeb4;
+  --color-brand-teal: #4fb6b2;
+  --color-brand-coral: #f05d5e;
+  --color-brand-yellow: #f4d98f;
+
+  /* Semantic tokens (mapped to Do Kind) */
+  --color-brand: #7fa8c4;
+  --color-brand-muted: #5a8bab;
+  --color-accent: #f05d5e;
+  --color-accent-soft: #fceaea;
+  --color-surface: #faf7f0;
   --color-surface-card: #ffffff;
-  --color-ink: #1c1917;
-  --color-ink-muted: #57534e;
-  --color-border: #e7e5e4;
-  --color-urgent: #b91c1c;
+  --color-ink: #4a4745;
+  --color-ink-muted: #6b6764;
+  --color-border: #dcd6cc;
+  --color-sidebar: #f5f0e8;
+  --color-sidebar-border: #e8e0d4;
+  --color-urgent: #e04546;
   --color-urgent-soft: #fef2f2;
   --color-success: #047857;
   --color-success-soft: #ecfdf5;
-  --color-warning: #b45309;
-  --color-warning-soft: #fffbeb;
+  --color-warning: #c46a1a;
+  --color-warning-soft: #fff4e8;
+  --color-info: #4fb6b2;
+  --color-info-soft: #e8f7f6;
+
+  --radius-brand: 0.75rem;
+  --radius-pill: 9999px;
+  --shadow-card: 0 4px 24px rgba(74, 71, 69, 0.08);
+  --shadow-pop: 0 8px 32px rgba(74, 71, 69, 0.14);
+}
+
+@utility rounded-pill {
+  border-radius: var(--radius-pill);
+}
+
+@utility shadow-pop {
+  box-shadow: var(--shadow-pop);
 }
 
 * {
@@ -34,8 +64,8 @@ body {
   color: var(--color-ink);
   background: var(--color-surface);
   background-image:
-    radial-gradient(ellipse 120% 80% at 100% -20%, rgba(184, 134, 11, 0.06), transparent 50%),
-    radial-gradient(ellipse 80% 50% at 0% 100%, rgba(15, 28, 46, 0.04), transparent 45%);
+    radial-gradient(ellipse 120% 80% at 100% -20%, rgba(127, 168, 196, 0.12), transparent 50%),
+    radial-gradient(ellipse 80% 50% at 0% 100%, rgba(244, 174, 180, 0.1), transparent 45%);
 }
 
 h1,
@@ -43,12 +73,18 @@ h2,
 h3,
 .font-display {
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: uppercase;
+}
+
+.font-script {
+  font-family: var(--font-script);
+  font-weight: 700;
 }
 
 ::selection {
-  background: rgba(184, 134, 11, 0.25);
+  background: rgba(240, 93, 94, 0.2);
 }
 
 @keyframes fade-up {
@@ -72,6 +108,6 @@ h3,
 .stagger-4 { animation-delay: 0.2s; }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brand-hero);
   outline-offset: 2px;
 }

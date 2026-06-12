@@ -65,7 +65,7 @@ export function WorkflowActions() {
         {WORKFLOWS.map((w) => (
           <li
             key={w.id}
-            className="flex items-start justify-between gap-3 rounded-xl border border-border bg-stone-50/80 px-4 py-3"
+            className="flex items-start justify-between gap-3 rounded-xl border border-border bg-brand-bg/80 px-4 py-3"
           >
             <div>
               <p className="text-sm font-medium text-ink">{w.label}</p>
@@ -89,9 +89,9 @@ export function WorkflowActions() {
       </ul>
 
       {result && (
-        <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft/50 p-4">
+        <div className="mt-4 rounded-xl border border-brand-hero/30 bg-info-soft p-4">
           <div className="flex items-start gap-2">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
             <div>
               <p className="text-sm font-medium text-ink">{result.summary}</p>
               {result.recommended_actions.length > 0 && (

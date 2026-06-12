@@ -21,7 +21,7 @@ export function AssistantShell() {
           className={cn(
             "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition",
             tab === "chat"
-              ? "bg-brand text-white shadow-sm"
+              ? "bg-brand-coral text-white shadow-sm"
               : "bg-surface-card text-ink-muted ring-1 ring-border hover:text-ink"
           )}
         >
@@ -34,7 +34,7 @@ export function AssistantShell() {
           className={cn(
             "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition",
             tab === "voice"
-              ? "bg-brand text-white shadow-sm"
+              ? "bg-brand-coral text-white shadow-sm"
               : "bg-surface-card text-ink-muted ring-1 ring-border hover:text-ink"
           )}
         >

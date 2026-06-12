@@ -22,15 +22,15 @@ export function formatDate(d?: string | null): string {
 
 export function statusColor(status: string): string {
   const map: Record<string, string> = {
-    intake: "bg-amber-100 text-amber-900",
-    active: "bg-emerald-100 text-emerald-900",
-    pending: "bg-blue-100 text-blue-900",
-    sold: "bg-slate-100 text-slate-700",
-    closed: "bg-slate-100 text-slate-700",
-    coming_soon: "bg-violet-100 text-violet-900",
-    submitted: "bg-sky-100 text-sky-900",
-    approved: "bg-emerald-100 text-emerald-900",
+    intake: "bg-brand-peach/25 text-ink",
+    active: "bg-info-soft text-brand-teal",
+    pending: "bg-brand-hero/15 text-brand-hero",
+    sold: "bg-brand-bg text-ink-muted",
+    closed: "bg-brand-bg text-ink-muted",
+    coming_soon: "bg-brand-pink/25 text-ink",
+    submitted: "bg-brand-hero/15 text-brand-hero",
+    approved: "bg-success-soft text-success",
     kick_back: "bg-red-100 text-red-900",
   };
-  return map[status] ?? "bg-gray-100 text-gray-800";
+  return map[status] ?? "bg-brand-bg text-ink-muted";
 }

@@ -185,7 +185,7 @@ export function ListingWizard() {
             We&apos;ll create the file and queue the seller intro email for your review before
             anything sends.
           </p>
-          <ul className="mt-6 space-y-2 rounded-xl bg-stone-50 p-4 text-sm">
+          <ul className="mt-6 space-y-2 rounded-xl bg-brand-bg p-4 text-sm">
             <li>
               <span className="text-ink-muted">Address: </span>
               <strong>{formData.property_address || "—"}</strong>
