@@ -103,7 +103,8 @@ export function buildKeyDateRows(params: {
   const byType = new Map(deadlines.map((d) => [d.deadline_type, d]));
 
   return CLIENT_FACING_TYPES.filter((type) => {
-    if (type === "hoa_docs" && !hasHoa) return false;
+    // Prefer explicit HOA flag; also include if a hoa_docs deadline was computed.
+    if (type === "hoa_docs") return Boolean(hasHoa) || byType.has("hoa_docs");
     return byType.has(type) || type === "t47_residential";
   }).map((type) => {
     const d = byType.get(type);

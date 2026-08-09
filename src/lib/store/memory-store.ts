@@ -139,7 +139,7 @@ export const memoryStore = {
   listings: () => [...listings],
   getListing: (id: string) => listings.find((l) => l.id === id),
   createListing: (data: Partial<Listing>) => {
-    const id = `listing-${Date.now()}`;
+    const id = `listing-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const listing: Listing = {
       id,
       property_address: data.property_address ?? "",
@@ -160,7 +160,7 @@ export const memoryStore = {
   transactions: () => [...transactions],
   getTransaction: (id: string) => transactions.find((t) => t.id === id),
   createTransaction: (data: Partial<Transaction>) => {
-    const id = `txn-${Date.now()}`;
+    const id = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const txn: Transaction = {
       id,
       property_address: data.property_address ?? "",
