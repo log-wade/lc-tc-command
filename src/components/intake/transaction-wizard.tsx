@@ -63,7 +63,7 @@ export function TransactionWizard() {
       toast.error(json.error ?? "Could not save contract");
       return;
     }
-    toast.success("Contract saved — deadlines computed & congrats email queued");
+    toast.success("Contract saved — deadlines computed; congrats + title intro queued");
     router.push(`/transactions/${json.transaction.id}`);
     router.refresh();
   }
@@ -134,6 +134,17 @@ export function TransactionWizard() {
             <FormField label="Earnest money ($)" name="earnest_money_amount" type="number" defaultValue={formData.earnest_money_amount} />
             <FormField label="Loan type" name="loan_type" placeholder="Conventional, FHA, VA…" defaultValue={formData.loan_type} />
             <FormField label="Title file #" name="title_file_number" defaultValue={formData.title_file_number} />
+            <FormField label="Title company" name="title_company" defaultValue={formData.title_company} />
+            <FormField
+              label="HOA?"
+              name="has_hoa"
+              options={[
+                { value: "no", label: "No" },
+                { value: "yes", label: "Yes" },
+              ]}
+              defaultValue={formData.has_hoa ?? "no"}
+              hint="Adds HOA document delivery to the key-dates table."
+            />
           </FormSection>
         </WizardPanel>
       </div>
@@ -141,6 +152,11 @@ export function TransactionWizard() {
       <div className={step === 2 ? "block" : "hidden"} aria-hidden={step !== 2}>
         <WizardPanel>
           <FormSection title="Parties" description="Buyer and seller names for templates and third-party intros.">
+            <FormField
+              label="Client first name (for emails)"
+              name="client_first_name"
+              defaultValue={formData.client_first_name}
+            />
             <FormField label="Buyer name(s)" name="buyer_names" className="sm:col-span-2" defaultValue={formData.buyer_names} />
             <FormField label="Seller name(s)" name="seller_names" className="sm:col-span-2" defaultValue={formData.seller_names} />
           </FormSection>
@@ -151,8 +167,9 @@ export function TransactionWizard() {
         <WizardPanel>
           <h2 className="font-display text-lg font-semibold">Ready to submit?</h2>
           <p className="mt-1 text-sm text-ink-muted">
-            All Texas residential deadlines will be calculated automatically. Template 6 (Congrats
-            &amp; What to Expect) queues for your review.
+            All Texas residential deadlines will be calculated automatically. Template 5 (Congrats)
+            and Template 6 (Title + lender intro) queue for your review — you can skip the intro
+            if an agent already sent the executed contract.
           </p>
           <ul className="mt-6 space-y-2 rounded-xl bg-brand-bg p-4 text-sm">
             <li>

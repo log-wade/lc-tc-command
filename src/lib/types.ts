@@ -31,6 +31,27 @@ export interface Agent {
   role: string;
 }
 
+export interface ListingWeeklyStats {
+  showings_week?: string | number;
+  showings_total?: string | number;
+  feedback_count?: string | number;
+  feedback_themes?: string;
+  showings?: string | number;
+  cancellations?: string | number;
+  no_shows?: string | number;
+}
+
+export interface ListingMetadata {
+  weekly_stats?: ListingWeeklyStats;
+  showing_restrictions?: string;
+  showing_notification_preference?: string;
+  open_house_details?: string;
+  seller_first_name?: string;
+  seller_preferred_name?: string;
+  review_link?: string;
+  [key: string]: unknown;
+}
+
 export interface Listing {
   id: string;
   property_address: string;
@@ -46,7 +67,35 @@ export interface Listing {
   listing_agent_id?: string;
   compliance_status?: string;
   go_live_approved?: boolean;
+  showing_instructions?: string;
+  showing_restrictions?: string;
+  showing_notification_preference?: string;
+  open_house_details?: string;
+  has_hoa?: boolean;
+  hoa_name?: string;
+  metadata?: ListingMetadata;
   created_at?: string;
+}
+
+export interface TransactionMetadata {
+  weekly_stats?: ListingWeeklyStats;
+  client_first_name?: string;
+  seller_first_name?: string;
+  seller_preferred_name?: string;
+  has_hoa?: boolean;
+  title_company?: string;
+  third_party_name?: string;
+  status_summary?: string;
+  closer_name?: string;
+  closer_phone?: string;
+  closing_day?: string;
+  closing_time?: string;
+  signing_method?: string;
+  utilities_reminder?: string;
+  final_walkthrough?: string;
+  keys_and_access?: string;
+  review_link?: string;
+  [key: string]: unknown;
 }
 
 export interface Transaction {
@@ -66,6 +115,8 @@ export interface Transaction {
   loan_type?: string;
   supervising_agent_id?: string;
   compliance_status?: string;
+  has_hoa?: boolean;
+  metadata?: TransactionMetadata;
   created_at?: string;
 }
 
@@ -77,6 +128,7 @@ export interface Deadline {
   label: string;
   due_at: string;
   status: string;
+  notes?: string;
 }
 
 export interface DashboardStats {

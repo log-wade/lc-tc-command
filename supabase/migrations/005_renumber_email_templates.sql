@@ -1,3 +1,32 @@
+-- Renumber templates tpl-3…tpl-10 → tpl-2…tpl-9 (old 10-template scheme only)
+-- and refresh copy. Safe for fresh installs where 002 already seeded tpl-1…tpl-9.
+--
+-- Guard: ID remaps run ONLY when tpl-10 still exists (pre-renumber library).
+-- If the DB is already on the 9-template scheme, we only upsert content + columns.
+
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS showing_restrictions TEXT;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS showing_notification_preference TEXT;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS open_house_details TEXT;
+
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS has_hoa BOOLEAN DEFAULT FALSE;
+
+DO $$
+DECLARE
+  needs_renumber BOOLEAN;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM email_templates WHERE id = 'tpl-10'
+  ) INTO needs_renumber;
+
+  IF needs_renumber THEN
+    ALTER TABLE communications DROP CONSTRAINT IF EXISTS communications_template_id_fkey;
+
+    UPDATE email_templates
+    SET id = 'legacy-' || id
+    WHERE id LIKE 'tpl-%' AND id NOT LIKE 'legacy-%';
+  END IF;
+END $$;
+
 INSERT INTO email_templates (id, name, subject_template, body_template, category, requires_review, auto_send_enabled) VALUES
 ('tpl-1', 'Listing Intro / What to Expect',
  'Welcome {{seller_first_name}} — Here''s What to Expect for {{property_address}}',
@@ -50,3 +79,54 @@ ON CONFLICT (id) DO UPDATE SET
   category = EXCLUDED.category,
   requires_review = EXCLUDED.requires_review,
   auto_send_enabled = EXCLUDED.auto_send_enabled;
+
+-- Remap only rows that were renamed to legacy-* (old 10-template scheme).
+UPDATE communications SET template_id = CASE template_id
+  WHEN 'legacy-tpl-1' THEN 'tpl-1'
+  WHEN 'legacy-tpl-3' THEN 'tpl-2'
+  WHEN 'legacy-tpl-4' THEN 'tpl-3'
+  WHEN 'legacy-tpl-5' THEN 'tpl-4'
+  WHEN 'legacy-tpl-6' THEN 'tpl-5'
+  WHEN 'legacy-tpl-7' THEN 'tpl-6'
+  WHEN 'legacy-tpl-8' THEN 'tpl-7'
+  WHEN 'legacy-tpl-9' THEN 'tpl-8'
+  WHEN 'legacy-tpl-10' THEN 'tpl-9'
+  ELSE template_id
+END
+WHERE template_id LIKE 'legacy-tpl-%';
+
+-- Remap pending review payloads ONLY when any payload still references tpl-10
+-- (definitive signal of the pre-renumber library). Never shift current tpl-3…tpl-9.
+UPDATE review_queue
+SET payload = jsonb_set(payload, '{template_id}', to_jsonb(
+  CASE payload->>'template_id'
+    WHEN 'tpl-3' THEN 'tpl-2'
+    WHEN 'tpl-4' THEN 'tpl-3'
+    WHEN 'tpl-5' THEN 'tpl-4'
+    WHEN 'tpl-6' THEN 'tpl-5'
+    WHEN 'tpl-7' THEN 'tpl-6'
+    WHEN 'tpl-8' THEN 'tpl-7'
+    WHEN 'tpl-9' THEN 'tpl-8'
+    WHEN 'tpl-10' THEN 'tpl-9'
+    ELSE payload->>'template_id'
+  END
+))
+WHERE payload ? 'template_id'
+  AND payload->>'template_id' IN ('tpl-3','tpl-4','tpl-5','tpl-6','tpl-7','tpl-8','tpl-9','tpl-10')
+  AND EXISTS (
+    SELECT 1 FROM review_queue rq
+    WHERE rq.payload->>'template_id' = 'tpl-10'
+  );
+
+DELETE FROM email_templates WHERE id LIKE 'legacy-%';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'communications_template_id_fkey'
+  ) THEN
+    ALTER TABLE communications
+      ADD CONSTRAINT communications_template_id_fkey
+      FOREIGN KEY (template_id) REFERENCES email_templates(id);
+  END IF;
+END $$;

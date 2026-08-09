@@ -10,6 +10,7 @@ export interface TransactionDeadlineInput {
   closingDate: Date;
   optionDays: number;
   financingDays: number;
+  hasHoa?: boolean;
 }
 
 export interface ComputedDeadline {
@@ -22,12 +23,12 @@ export interface ComputedDeadline {
 export function computeTransactionDeadlines(
   input: TransactionDeadlineInput
 ): ComputedDeadline[] {
-  const { effectiveDate, closingDate, optionDays, financingDays } = input;
+  const { effectiveDate, closingDate, optionDays, financingDays, hasHoa } = input;
   const eff = effectiveDate;
 
   const optionEnd = setMinutes(setHours(addDays(eff, optionDays), 17), 0);
 
-  return [
+  const deadlines: ComputedDeadline[] = [
     {
       deadline_type: "option_fee_due",
       label: "Option Fee Due (1 day after effective)",
@@ -59,13 +60,13 @@ export function computeTransactionDeadlines(
       due_at: addDays(eff, 20),
     },
     {
-      deadline_type: "hoa_docs",
-      label: "HOA Documents Delivery",
-      due_at: addDays(eff, 15),
-    },
-    {
       deadline_type: "survey",
       label: "Survey Delivery",
+      due_at: addDays(eff, 20),
+    },
+    {
+      deadline_type: "t47_residential",
+      label: "T-47 Residential Real Property Affidavit",
       due_at: addDays(eff, 20),
     },
     {
@@ -84,6 +85,36 @@ export function computeTransactionDeadlines(
       due_at: addDays(closingDate, -1),
     },
   ];
+
+  if (hasHoa) {
+    deadlines.splice(6, 0, {
+      deadline_type: "hoa_docs",
+      label: "HOA Documents Delivery",
+      due_at: addDays(eff, 15),
+    });
+  }
+
+  return deadlines;
+}
+
+/** End of next business day (Mon–Fri) in America/Chicago for weekend intakes. */
+export function introEmailDueBy(from = new Date()): Date {
+  const day = from.getDay(); // 0 Sun … 6 Sat
+  const due = new Date(from);
+
+  if (day === 0) {
+    // Sunday → Monday EOD
+    due.setDate(due.getDate() + 1);
+  } else if (day === 6) {
+    // Saturday → Monday EOD
+    due.setDate(due.getDate() + 2);
+  } else {
+    // Weekday → 24 hours from now
+    return new Date(from.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  due.setHours(17, 0, 0, 0);
+  return due;
 }
 
 export function formatDeadlineCt(d: Date): string {

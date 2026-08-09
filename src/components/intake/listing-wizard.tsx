@@ -174,6 +174,32 @@ export function ListingWizard() {
               placeholder="1-hour notice, pets, alarm code…"
               defaultValue={formData.showing_instructions}
             />
+            <FormField
+              label="Showing restrictions"
+              name="showing_restrictions"
+              textarea
+              className="sm:col-span-2"
+              placeholder="No showings before 10 AM; block Sundays; occupied — prefer evenings…"
+              defaultValue={formData.showing_restrictions}
+            />
+            <FormField
+              label="Showing notifications"
+              name="showing_notification_preference"
+              options={[
+                { value: "both", label: "Text + email" },
+                { value: "text", label: "Text only" },
+                { value: "email", label: "Email only" },
+              ]}
+              defaultValue={formData.showing_notification_preference ?? "both"}
+            />
+            <FormField
+              label="Open house details (optional)"
+              name="open_house_details"
+              textarea
+              className="sm:col-span-2"
+              placeholder="First weekend OH Sat 1–3 PM if scheduled…"
+              defaultValue={formData.open_house_details}
+            />
           </FormSection>
         </WizardPanel>
       </div>

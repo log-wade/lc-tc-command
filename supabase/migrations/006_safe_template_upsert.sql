@@ -1,3 +1,18 @@
+-- Idempotent safety pass after 005:
+-- - Ensure listing/transaction columns exist
+-- - Upsert 9-template library content (no ID remapping)
+-- - Drop any leftover tpl-10 / legacy-* rows if somehow present
+-- Safe to run on DBs already on the new scheme (greenfield or post-005).
+
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS showing_restrictions TEXT;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS showing_notification_preference TEXT;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS open_house_details TEXT;
+
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS has_hoa BOOLEAN DEFAULT FALSE;
+
+-- Never remap current IDs. Only remove obsolete rows.
+DELETE FROM email_templates WHERE id = 'tpl-10' OR id LIKE 'legacy-%';
+
 INSERT INTO email_templates (id, name, subject_template, body_template, category, requires_review, auto_send_enabled) VALUES
 ('tpl-1', 'Listing Intro / What to Expect',
  'Welcome {{seller_first_name}} — Here''s What to Expect for {{property_address}}',
@@ -50,3 +65,9 @@ ON CONFLICT (id) DO UPDATE SET
   category = EXCLUDED.category,
   requires_review = EXCLUDED.requires_review,
   auto_send_enabled = EXCLUDED.auto_send_enabled;
+
+-- Normalize any stray pending review that still points at removed tpl-10
+UPDATE review_queue
+SET payload = jsonb_set(payload, '{template_id}', '"tpl-9"')
+WHERE status = 'pending'
+  AND payload->>'template_id' = 'tpl-10';

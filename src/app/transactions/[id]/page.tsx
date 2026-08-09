@@ -4,6 +4,8 @@ import { getTransaction, getDeadlines } from "@/lib/data";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { DeadlineRow } from "@/components/ui/deadline-row";
+import { ClosingPrepForm } from "@/components/transactions/closing-prep-form";
+import { WeeklyNotesForm } from "@/components/transactions/weekly-notes-form";
 import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
@@ -84,8 +86,42 @@ export default async function TransactionDetailPage({
           </div>
         </section>
       </div>
+
+      <div className="mt-6 space-y-6">
+        <WeeklyNotesForm
+          transactionId={transaction.id}
+          initial={{
+            status_summary:
+              typeof transaction.metadata?.status_summary === "string"
+                ? transaction.metadata.status_summary
+                : undefined,
+            action_needed:
+              typeof transaction.metadata?.action_needed === "string"
+                ? transaction.metadata.action_needed
+                : undefined,
+          }}
+        />
+        <ClosingPrepForm
+          transactionId={transaction.id}
+          initial={{
+            closing_day: metaString(transaction.metadata?.closing_day),
+            closing_time: metaString(transaction.metadata?.closing_time),
+            signing_method: metaString(transaction.metadata?.signing_method),
+            utilities_reminder: metaString(transaction.metadata?.utilities_reminder),
+            final_walkthrough: metaString(transaction.metadata?.final_walkthrough),
+            keys_and_access: metaString(transaction.metadata?.keys_and_access),
+            closer_name: metaString(transaction.metadata?.closer_name),
+            closer_phone: metaString(transaction.metadata?.closer_phone),
+            title_company: metaString(transaction.metadata?.title_company),
+          }}
+        />
+      </div>
     </div>
   );
+}
+
+function metaString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 function Row({ label, value }: { label: string; value: string }) {

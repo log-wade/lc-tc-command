@@ -1,0 +1,13 @@
+{
+  "targetProducts": [
+    {
+      "name": "lc-tc-platform",
+      "path": ".",
+      "description": "LC/TC coordination platform — email templates, review queue, deadlines"
+    }
+  ],
+  "contextPath": "context.md",
+  "outcomesPath": "outcomes",
+  "maxParallelTasks": 3,
+  "subagentDriven": false
+}

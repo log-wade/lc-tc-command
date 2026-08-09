@@ -9,7 +9,7 @@ Automated **Listing & Transaction Coordination** platform for Texas residential 
 | 1. Intake | LC + TC web forms → API routes |
 | 2. Data | Supabase Postgres (memory fallback for demo) |
 | 3. Deadline Engine | Texas residential formulas from effective date |
-| 4. Communications | 10-template library + Resend email |
+| 4. Communications | 9-template library + Resend email |
 | 5. Integrations | Adapter layer (MLS, DocuSign, ShowingTime, title) — live when API keys set |
 | 6. AI Agent | Claude — inbox triage, draft polish, wire-fraud P0 |
 | 7. Human-in-Loop | Review queue — go-live, comms, escalations |
@@ -52,6 +52,8 @@ Local dev: `vercel env pull .env.local`
 
 ## Deploy (Vercel)
 
+Production URL: **[https://dokind.ai](https://dokind.ai)** (custom domain)
+
 ```bash
 vercel link
 vercel env pull .env.local
@@ -59,6 +61,43 @@ vercel --prod
 ```
 
 Cron jobs (deadline reminders, Tuesday updates, review SLA) are configured in `vercel.json`.
+
+### Custom domain (`dokind.ai` on GoDaddy)
+
+The domain is attached to the Vercel project `lc-tc-platform`. Finish DNS at GoDaddy:
+
+| Type | Host | Value | TTL |
+|------|------|-------|-----|
+| **A** | `@` | `76.76.21.21` | 600 (or default) |
+| **A** | `www` | `76.76.21.21` | 600 (or default) |
+
+1. Go to [GoDaddy DNS](https://dcc.godaddy.com/manage/dokind.ai/dns) for `dokind.ai`.
+2. Remove conflicting `A`/`CNAME` records for `@` and `www` if present.
+3. Add the two **A** records above.
+4. Wait 5–60 minutes for propagation; Vercel will email when SSL is ready.
+
+`www.dokind.ai` redirects to `dokind.ai` (configured in `vercel.json`).
+
+**Alternative:** point GoDaddy nameservers to Vercel (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`) and manage DNS in Vercel instead.
+
+### Supabase auth (required once)
+
+In [Supabase → Authentication → URL Configuration](https://supabase.com/dashboard/project/mueadgepbcguidxnuqxj/auth/url-configuration):
+
+| Setting | Value |
+|---------|-------|
+| Site URL | `https://dokind.ai` |
+| Redirect URLs | `https://dokind.ai/**`, `https://www.dokind.ai/**` |
+
+### ElevenLabs voice agent
+
+After the domain is live, re-point tool webhooks:
+
+```bash
+export AGENT_WEBHOOK_BASE_URL=https://dokind.ai
+npm run agent:setup
+# Update NEXT_PUBLIC_ELEVENLABS_AGENT_ID on Vercel if the script prints a new id
+```
 
 ## Enterprise platform (Phases 1–5)
 

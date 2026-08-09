@@ -5,7 +5,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { DeadlineRow } from "@/components/ui/deadline-row";
 import { GoLiveButton } from "@/components/listings/go-live-button";
+import { WeeklyStatsForm } from "@/components/listings/weekly-stats-form";
 import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
+import type { ListingWeeklyStats } from "@/lib/types";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +23,12 @@ export default async function ListingDetailPage({
 
   const deadlines = await getDeadlines("listing", id);
   const now = new Date();
+  const weekly = (listing.metadata?.weekly_stats ?? {}) as ListingWeeklyStats;
+  const openHouse =
+    listing.open_house_details ||
+    (typeof listing.metadata?.open_house_details === "string"
+      ? listing.metadata.open_house_details
+      : undefined);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
@@ -86,6 +94,24 @@ export default async function ListingDetailPage({
             )}
           </div>
         </section>
+      </div>
+
+      <div className="mt-6">
+        <WeeklyStatsForm
+          listingId={listing.id}
+          initial={{
+            showings_week: weekly.showings_week != null ? String(weekly.showings_week) : undefined,
+            showings_total:
+              weekly.showings_total != null ? String(weekly.showings_total) : undefined,
+            feedback_count:
+              weekly.feedback_count != null ? String(weekly.feedback_count) : undefined,
+            feedback_themes: weekly.feedback_themes,
+            cancellations:
+              weekly.cancellations != null ? String(weekly.cancellations) : undefined,
+            no_shows: weekly.no_shows != null ? String(weekly.no_shows) : undefined,
+            open_house_details: openHouse,
+          }}
+        />
       </div>
     </div>
   );

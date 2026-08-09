@@ -1,12 +1,15 @@
 import { createServiceClient, isDatabaseConfigured, useMemoryStore } from "../supabase/server";
 import { DEFAULT_ORG_ID, resolveAgentId } from "../supabase/server-auth";
-import { getTemplateById } from "../templates/catalog";
+import { getTemplateById, resolveTemplateId } from "../templates/catalog";
+import { fillTemplate } from "../templates/signature";
+import { buildEmailContext } from "../templates/build-context";
 import { sendEmail } from "../email/resend";
 import { recordFileEvent } from "../events/file-events";
 import { memoryStore } from "../store/memory-store";
 import {
   computeTransactionDeadlines,
   deadlinesToRecords,
+  introEmailDueBy,
 } from "../deadlines/engine";
 import { logAudit } from "../audit";
 import type { DashboardStats, Listing, Transaction } from "../types";
@@ -143,6 +146,7 @@ type ReviewQueueItem = {
   priority: string;
   title: string;
   payload: Record<string, unknown>;
+  due_by?: string;
 };
 
 async function queueReview(item: ReviewQueueItem): Promise<void> {
@@ -210,6 +214,12 @@ async function ensureSellSideTransaction(listing: Listing, agentId: string): Pro
 }
 
 export async function createListingIntake(payload: Record<string, unknown>): Promise<Listing> {
+  const sellerPreferred = payload.seller_preferred_name as string | undefined;
+  const sellerLegal = payload.seller_legal_name as string | undefined;
+  const sellerFirst =
+    sellerPreferred ||
+    (sellerLegal ? String(sellerLegal).split(/\s+/)[0] : undefined);
+
   const listingData = {
     property_address: String(payload.property_address ?? ""),
     city: payload.city as string | undefined,
@@ -225,7 +235,21 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     mud_pid_sid: payload.mud_pid_sid === true || payload.mud_pid_sid === "yes",
     photo_package: payload.photo_package as string | undefined,
     showing_instructions: payload.showing_instructions as string | undefined,
+    showing_restrictions: payload.showing_restrictions as string | undefined,
+    showing_notification_preference: payload.showing_notification_preference as
+      | string
+      | undefined,
+    open_house_details: payload.open_house_details as string | undefined,
     listing_agent_id: payload.listing_agent_id as string | undefined,
+    metadata: {
+      seller_first_name: sellerFirst,
+      seller_preferred_name: sellerPreferred,
+      showing_restrictions: payload.showing_restrictions as string | undefined,
+      showing_notification_preference: payload.showing_notification_preference as
+        | string
+        | undefined,
+      open_house_details: payload.open_house_details as string | undefined,
+    },
     status: "intake" as const,
     compliance_status: "pending",
     organization_id: DEFAULT_ORG_ID,
@@ -270,6 +294,7 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     priority: "P2",
     title: `Send Template 1 — Intro email for ${listing.property_address}`,
     payload: { template_id: "tpl-1", listing_id: listing.id },
+    due_by: introEmailDueBy().toISOString(),
   });
 
   return listing;
@@ -280,6 +305,12 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
   const closingDate = new Date(String(payload.closing_date));
   const optionDays = Number(payload.option_days ?? 10);
   const financingDays = Number(payload.financing_days ?? 21);
+
+  const hasHoa = payload.has_hoa === true || payload.has_hoa === "yes";
+  const clientFirst =
+    (payload.client_first_name as string | undefined) ||
+    (payload.buyer_first_name as string | undefined) ||
+    (payload.seller_preferred_name as string | undefined);
 
   const txnData = {
     property_address: String(payload.property_address ?? ""),
@@ -296,6 +327,13 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
     title_file_number: payload.title_file_number as string | undefined,
     mls_number: payload.mls_number as string | undefined,
     supervising_agent_id: payload.supervising_agent_id as string | undefined,
+    has_hoa: hasHoa,
+    metadata: {
+      client_first_name: clientFirst,
+      has_hoa: hasHoa,
+      title_company: payload.title_company as string | undefined,
+      third_party_name: payload.third_party_name as string | undefined,
+    },
     status: "intake" as const,
     compliance_status: "pending",
     organization_id: DEFAULT_ORG_ID,
@@ -316,6 +354,7 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
         closingDate,
         optionDays,
         financingDays,
+        hasHoa,
       });
       const records = deadlinesToRecords("transaction", transaction.id, computed);
       await supabase.from("deadlines").insert(records);
@@ -330,6 +369,7 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
       closingDate,
       optionDays,
       financingDays,
+      hasHoa,
     });
     memoryStore.createDeadlines(
       deadlinesToRecords("transaction", transaction.id, computed).map((d, i) => ({
@@ -361,8 +401,22 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
     file_id: transaction.id,
     item_type: "communication",
     priority: "P2",
-    title: `Send Template 6 — Congrats & What to Expect for ${transaction.property_address}`,
-    payload: { template_id: "tpl-6", transaction_id: transaction.id },
+    title: `Send Template 5 — Congrats & What to Expect for ${transaction.property_address}`,
+    payload: { template_id: "tpl-5", transaction_id: transaction.id },
+  });
+
+  await queueReview({
+    file_type: "transaction",
+    file_id: transaction.id,
+    item_type: "communication",
+    priority: "P2",
+    title: `Send Template 6 — Title + lender intro for ${transaction.property_address}`,
+    payload: {
+      template_id: "tpl-6",
+      transaction_id: transaction.id,
+      skippable: true,
+      skip_reason_hint: "agent_already_sent",
+    },
   });
 
   return transaction;
@@ -419,14 +473,132 @@ export async function approveGoLive(listingId: string, agentId: string) {
     file_id: listingId,
     item_type: "go_live",
     priority: "P2",
-    title: "Send Template 3 — We Are Live",
-    payload: { template_id: "tpl-3", listing_id: listingId },
+    title: "Send Template 2 — We Are Live",
+    payload: { template_id: "tpl-2", listing_id: listingId },
   });
 
   return { listing: updatedListing, transaction };
 }
 
-export async function resolveReview(reviewId: string, approved: boolean, notes?: string) {
+export async function updateListingWeeklyStats(
+  listingId: string,
+  stats: Record<string, unknown>
+): Promise<Listing | null> {
+  const listing = await getListing(listingId);
+  if (!listing) return null;
+
+  const prevMeta = listing.metadata ?? {};
+  const openHouseDetails =
+    typeof stats.open_house_details === "string"
+      ? stats.open_house_details
+      : typeof prevMeta.open_house_details === "string"
+        ? prevMeta.open_house_details
+        : undefined;
+
+  const metadata = {
+    ...prevMeta,
+    weekly_stats: {
+      ...(prevMeta.weekly_stats ?? {}),
+      showings_week: stats.showings_week as string | number | undefined,
+      showings_total: stats.showings_total as string | number | undefined,
+      feedback_count: stats.feedback_count as string | number | undefined,
+      feedback_themes: stats.feedback_themes as string | undefined,
+      showings: stats.showings as string | number | undefined,
+      cancellations: stats.cancellations as string | number | undefined,
+      no_shows: stats.no_shows as string | number | undefined,
+    },
+    open_house_details: openHouseDetails,
+  };
+
+  const patch = {
+    metadata,
+    open_house_details: openHouseDetails,
+  };
+
+  if (!useMemoryStore() && isDatabaseConfigured()) {
+    const supabase = createServiceClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("listings")
+        .update(patch)
+        .eq("id", listingId)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return data as Listing;
+    }
+  }
+
+  return memoryStore.updateListing(listingId, patch) ?? null;
+}
+
+async function mergeTransactionMetadata(
+  transactionId: string,
+  patch: Record<string, unknown>
+): Promise<Transaction | null> {
+  const txn = await getTransaction(transactionId);
+  if (!txn) return null;
+
+  const metadata = {
+    ...(txn.metadata ?? {}),
+    ...patch,
+  };
+
+  if (!useMemoryStore() && isDatabaseConfigured()) {
+    const supabase = createServiceClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("transactions")
+        .update({ metadata })
+        .eq("id", transactionId)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return data as Transaction;
+    }
+  }
+
+  return memoryStore.updateTransaction(transactionId, { metadata }) ?? null;
+}
+
+export async function updateTransactionWeeklyNotes(
+  transactionId: string,
+  notes: Record<string, unknown>
+): Promise<Transaction | null> {
+  return mergeTransactionMetadata(transactionId, notes);
+}
+
+const CLOSING_PREP_KEYS = [
+  "closing_day",
+  "closing_time",
+  "signing_method",
+  "utilities_reminder",
+  "final_walkthrough",
+  "keys_and_access",
+  "closer_name",
+  "closer_phone",
+  "title_company",
+] as const;
+
+export async function updateTransactionClosingPrep(
+  transactionId: string,
+  prep: Record<string, unknown>
+): Promise<Transaction | null> {
+  const patch: Record<string, unknown> = {};
+  for (const key of CLOSING_PREP_KEYS) {
+    if (key in prep && typeof prep[key] === "string") {
+      patch[key] = prep[key];
+    }
+  }
+  return mergeTransactionMetadata(transactionId, patch);
+}
+
+export async function resolveReview(
+  reviewId: string,
+  approved: boolean,
+  notes?: string,
+  draftOverrides?: { subject?: string; body?: string }
+) {
   let reviewPayload: Record<string, unknown> | undefined;
   let fileType: string | undefined;
   let fileId: string | undefined;
@@ -462,13 +634,53 @@ export async function resolveReview(reviewId: string, approved: boolean, notes?:
   }
 
   if (approved && reviewPayload?.template_id) {
-    const template = getTemplateById(String(reviewPayload.template_id));
+    const templateId = resolveTemplateId(String(reviewPayload.template_id));
+    const template = getTemplateById(templateId);
     const alertTo = process.env.ALERT_EMAIL;
-    if (template && alertTo) {
+    if (!template) {
+      await logAudit({
+        actor_type: "system",
+        action_type: "email_send_skipped",
+        inputs: { reviewId, templateId, reason: "template_not_found" },
+        outcome: "failure",
+      });
+    } else if (!alertTo) {
+      await logAudit({
+        actor_type: "system",
+        action_type: "email_send_skipped",
+        inputs: {
+          reviewId,
+          templateId: template.id,
+          reason: "ALERT_EMAIL not configured — approve recorded but no send",
+        },
+        outcome: "failure",
+      });
+    } else {
+      const ctx = await buildEmailContext(fileType, fileId);
+      const subject =
+        draftOverrides?.subject ??
+        (typeof reviewPayload.draft_subject === "string"
+          ? reviewPayload.draft_subject
+          : fillTemplate(template.subject, ctx));
+      const htmlBody =
+        draftOverrides?.body ??
+        (typeof reviewPayload.draft === "string"
+          ? reviewPayload.draft
+          : fillTemplate(template.body, ctx));
+      const textCtx = {
+        ...ctx,
+        key_dates_table: String(ctx.key_dates_table_text ?? ctx.key_dates_table ?? ""),
+      };
+      const textBody =
+        draftOverrides?.body ??
+        (typeof reviewPayload.draft === "string"
+          ? reviewPayload.draft
+          : fillTemplate(template.body, textCtx));
       await sendEmail({
         to: [alertTo],
-        subject: template.subject,
-        body: template.body,
+        subject,
+        body: textBody,
+        html: htmlBody !== textBody ? htmlBody : undefined,
         fileType,
         fileId,
         templateId: template.id,
@@ -480,7 +692,11 @@ export async function resolveReview(reviewId: string, approved: boolean, notes?:
     await recordFileEvent({
       fileType,
       fileId,
-      eventType: approved ? "review.approved" : "review.rejected",
+      eventType: approved
+        ? "review.approved"
+        : notes === "agent_already_sent"
+          ? "review.skipped"
+          : "review.rejected",
       actorType: "human",
       payload: { reviewId, notes },
     });
@@ -488,7 +704,11 @@ export async function resolveReview(reviewId: string, approved: boolean, notes?:
 
   await logAudit({
     actor_type: "human",
-    action_type: approved ? "review_approved" : "review_rejected",
+    action_type: approved
+      ? "review_approved"
+      : notes === "agent_already_sent"
+        ? "review_skipped"
+        : "review_rejected",
     inputs: { reviewId, notes },
     outcome: "success",
   });
