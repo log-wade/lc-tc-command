@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { logAudit } from "../audit";
 
 const FROM =
-  process.env.EMAIL_FROM ?? "Carly Bryant <coordination@kw-anw.example.com>";
+  process.env.EMAIL_FROM ?? "Carly Bryant <carly@dokindtx.com>";
 
 export async function sendEmail(params: {
   to: string[];
