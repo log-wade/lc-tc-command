@@ -15,7 +15,7 @@ Run parallel implementers for independent app-code tasks. Use CLI for git/Vercel
 | H2 | Add automated email template regression tests | worker | completed |
 | H3 | Closing prep form on transaction detail (tpl-8 fields) | worker | completed |
 | H4 | Verify ALERT_EMAIL / Resend on Vercel | orchestrator | completed |
-| H5 | Commit + open PR for template work | orchestrator | in_progress |
+| H5 | Commit + open PR for template work | orchestrator | completed |
 
 ## Recent Outcomes (last 10)
 | Date | Task | Status | Result |
@@ -24,6 +24,7 @@ Run parallel implementers for independent app-code tasks. Use CLI for git/Vercel
 | 2026-08-09 | H2 template tests | success | 6/6 pass via `npm test` |
 | 2026-08-09 | H3 closing prep form | success | Form + API on txn detail |
 | 2026-08-09 | H4 Vercel env check | success | ALERT_EMAIL + RESEND_API_KEY present in Production |
+| 2026-08-09 | H5 commit + PR | success | https://github.com/log-wade/lc-tc-command/pull/3 |
 | 2026-08-09 | Email template revisions + migrations 005/006 | success | tpl-1…9 live on Supabase |
 
 ## Learnings
