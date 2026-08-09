@@ -18,7 +18,7 @@ const agents: Agent[] = [
     id: "agent-admin",
     first_name: "Carly",
     last_name: "Bryant",
-    email: "carly.bryant@kw.com",
+    email: "carly@dokindtx.com",
     phone: "(512) 555-0184",
     trec_license: "723235-SA",
     role: "admin",

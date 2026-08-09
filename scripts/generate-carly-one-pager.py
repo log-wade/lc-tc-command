@@ -99,7 +99,7 @@ def login_box(styles):
         ],
         [
             Paragraph("<b>Email</b>", styles["login_label"]),
-            Paragraph("carly.bryant@kw.com", styles["body"]),
+            Paragraph("carly@dokindtx.com", styles["body"]),
         ],
         [
             Paragraph("<b>Password</b>", styles["login_label"]),

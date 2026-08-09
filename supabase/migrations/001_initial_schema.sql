@@ -254,4 +254,4 @@ CREATE TABLE inbound_emails (
 
 -- Seed default agent (Carly persona supervisor placeholder)
 INSERT INTO agents (first_name, last_name, email, phone, trec_license, role)
-VALUES ('Carly', 'Bryant', 'carly.bryant@kw.com', '(512) 555-0184', '723235-SA', 'admin');
+VALUES ('Carly', 'Bryant', 'carly@dokindtx.com', '(512) 555-0184', '723235-SA', 'admin');

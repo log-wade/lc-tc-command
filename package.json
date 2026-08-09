@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/templates/catalog.test.ts",
+    "test": "tsx --test src/lib/templates/catalog.test.ts src/lib/email/recipients.test.ts",
     "agent:setup": "node scripts/setup-elevenlabs-agent.mjs",
     "seed:admin": "node scripts/seed-admin-user.mjs"
   },
