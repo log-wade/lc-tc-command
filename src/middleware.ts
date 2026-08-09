@@ -20,6 +20,15 @@ function isPublic(pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host")?.split(":")[0]?.toLowerCase();
+
+  // Canonicalize www → apex before auth so dokind.ai is the only host users hit.
+  if (host === "www.dokind.ai") {
+    const apex = request.nextUrl.clone();
+    apex.host = "dokind.ai";
+    apex.protocol = "https:";
+    return NextResponse.redirect(apex, 308);
+  }
 
   if (
     pathname.startsWith("/_next") ||
