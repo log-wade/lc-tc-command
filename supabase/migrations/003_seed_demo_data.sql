@@ -3,7 +3,7 @@
 INSERT INTO agents (id, first_name, last_name, email, phone, trec_license, role)
 VALUES
   ('a0000000-0000-4000-8000-000000000001', 'Jamie', 'Rivera', 'jamie.rivera@kw.com', '(512) 555-0100', '654321-SA', 'agent'),
-  ('a0000000-0000-4000-8000-000000000002', 'Carly', 'Bryant', 'carly.bryant@kw.com', '(512) 555-0184', '723235-SA', 'admin')
+  ('a0000000-0000-4000-8000-000000000002', 'Carly', 'Bryant', 'carly@dokindtx.com', '(512) 555-0184', '723235-SA', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO listings (

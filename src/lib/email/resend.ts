@@ -64,7 +64,12 @@ export async function sendEmail(params: {
       file_type: params.fileType,
       file_id: params.fileId,
       action_type: "email_sent",
-      inputs: { to: params.to, subject: params.subject, templateId: params.templateId },
+      inputs: {
+        to: params.to,
+        cc: params.cc,
+        subject: params.subject,
+        templateId: params.templateId,
+      },
       outputs: { messageId: data?.id },
       outcome: "success",
     });

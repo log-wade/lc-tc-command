@@ -48,6 +48,7 @@ export interface ListingMetadata {
   open_house_details?: string;
   seller_first_name?: string;
   seller_preferred_name?: string;
+  seller_email?: string;
   review_link?: string;
   [key: string]: unknown;
 }
@@ -80,11 +81,13 @@ export interface Listing {
 export interface TransactionMetadata {
   weekly_stats?: ListingWeeklyStats;
   client_first_name?: string;
+  client_email?: string;
   seller_first_name?: string;
   seller_preferred_name?: string;
   has_hoa?: boolean;
   title_company?: string;
   third_party_name?: string;
+  third_party_email?: string;
   status_summary?: string;
   closer_name?: string;
   closer_phone?: string;

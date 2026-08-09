@@ -24,6 +24,9 @@ function validateStep(step: number, data: Record<string, string>): string | null
     if (!data.effective_date) return "Effective date is required";
     if (!data.closing_date) return "Closing date is required";
   }
+  if (step === 2) {
+    if (!data.client_email?.trim()) return "Client email is required for outbound templates";
+  }
   return null;
 }
 
@@ -157,8 +160,28 @@ export function TransactionWizard() {
               name="client_first_name"
               defaultValue={formData.client_first_name}
             />
+            <FormField
+              label="Client email"
+              name="client_email"
+              type="email"
+              required={step === 2}
+              defaultValue={formData.client_email}
+              hint="Approved client emails (congrats, weekly, closing) go here."
+            />
             <FormField label="Buyer name(s)" name="buyer_names" className="sm:col-span-2" defaultValue={formData.buyer_names} />
             <FormField label="Seller name(s)" name="seller_names" className="sm:col-span-2" defaultValue={formData.seller_names} />
+            <FormField
+              label="Title / lender contact name"
+              name="third_party_name"
+              defaultValue={formData.third_party_name}
+            />
+            <FormField
+              label="Title / lender email"
+              name="third_party_email"
+              type="email"
+              defaultValue={formData.third_party_email}
+              hint="Used for Template 6 (title + lender intro)."
+            />
           </FormSection>
         </WizardPanel>
       </div>

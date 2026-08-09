@@ -3,6 +3,7 @@ import { DEFAULT_ORG_ID, resolveAgentId } from "../supabase/server-auth";
 import { getTemplateById, resolveTemplateId } from "../templates/catalog";
 import { fillTemplate } from "../templates/signature";
 import { buildEmailContext } from "../templates/build-context";
+import { resolveSendRecipients } from "../email/recipients";
 import { sendEmail } from "../email/resend";
 import { recordFileEvent } from "../events/file-events";
 import { memoryStore } from "../store/memory-store";
@@ -244,6 +245,7 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     metadata: {
       seller_first_name: sellerFirst,
       seller_preferred_name: sellerPreferred,
+      seller_email: payload.seller_email as string | undefined,
       showing_restrictions: payload.showing_restrictions as string | undefined,
       showing_notification_preference: payload.showing_notification_preference as
         | string
@@ -330,9 +332,11 @@ export async function createTransactionIntake(payload: Record<string, unknown>):
     has_hoa: hasHoa,
     metadata: {
       client_first_name: clientFirst,
+      client_email: payload.client_email as string | undefined,
       has_hoa: hasHoa,
       title_company: payload.title_company as string | undefined,
       third_party_name: payload.third_party_name as string | undefined,
+      third_party_email: payload.third_party_email as string | undefined,
     },
     status: "intake" as const,
     compliance_status: "pending",
@@ -593,6 +597,102 @@ export async function updateTransactionClosingPrep(
   return mergeTransactionMetadata(transactionId, patch);
 }
 
+async function loadRecipientFields(
+  fileType: string | undefined,
+  fileId: string | undefined
+): Promise<{
+  sellerEmail?: string;
+  clientEmail?: string;
+  thirdPartyEmail?: string;
+  agentEmail?: string;
+}> {
+  if (!fileType || !fileId) return {};
+
+  if (fileType === "listing") {
+    let listing: Listing | null = null;
+    if (!useMemoryStore() && isDatabaseConfigured()) {
+      const supabase = createServiceClient();
+      if (supabase) {
+        const { data } = await supabase.from("listings").select("*").eq("id", fileId).single();
+        listing = data as Listing | null;
+      }
+    }
+    if (!listing) listing = memoryStore.getListing(fileId) ?? null;
+    if (!listing) return {};
+
+    const meta = (listing.metadata ?? {}) as Record<string, unknown>;
+    const agentId = listing.listing_agent_id;
+    let agentEmail: string | undefined;
+    if (agentId) {
+      if (!useMemoryStore() && isDatabaseConfigured()) {
+        const supabase = createServiceClient();
+        if (supabase) {
+          const { data } = await supabase
+            .from("agents")
+            .select("email")
+            .eq("id", agentId)
+            .maybeSingle();
+          agentEmail = data?.email as string | undefined;
+        }
+      }
+      if (!agentEmail) agentEmail = memoryStore.getAgent(agentId)?.email;
+    }
+
+    return {
+      sellerEmail:
+        typeof meta.seller_email === "string" ? meta.seller_email : undefined,
+      agentEmail,
+    };
+  }
+
+  if (fileType === "transaction") {
+    let transaction: Transaction | null = null;
+    if (!useMemoryStore() && isDatabaseConfigured()) {
+      const supabase = createServiceClient();
+      if (supabase) {
+        const { data } = await supabase
+          .from("transactions")
+          .select("*")
+          .eq("id", fileId)
+          .single();
+        transaction = data as Transaction | null;
+      }
+    }
+    if (!transaction) transaction = memoryStore.getTransaction(fileId) ?? null;
+    if (!transaction) return {};
+
+    const meta = (transaction.metadata ?? {}) as Record<string, unknown>;
+    const agentId = transaction.supervising_agent_id;
+    let agentEmail: string | undefined;
+    if (agentId) {
+      if (!useMemoryStore() && isDatabaseConfigured()) {
+        const supabase = createServiceClient();
+        if (supabase) {
+          const { data } = await supabase
+            .from("agents")
+            .select("email")
+            .eq("id", agentId)
+            .maybeSingle();
+          agentEmail = data?.email as string | undefined;
+        }
+      }
+      if (!agentEmail) agentEmail = memoryStore.getAgent(agentId)?.email;
+    }
+
+    return {
+      clientEmail:
+        typeof meta.client_email === "string" ? meta.client_email : undefined,
+      thirdPartyEmail:
+        typeof meta.third_party_email === "string"
+          ? meta.third_party_email
+          : undefined,
+      agentEmail,
+    };
+  }
+
+  return {};
+}
+
 export async function resolveReview(
   reviewId: string,
   approved: boolean,
@@ -636,7 +736,6 @@ export async function resolveReview(
   if (approved && reviewPayload?.template_id) {
     const templateId = resolveTemplateId(String(reviewPayload.template_id));
     const template = getTemplateById(templateId);
-    const alertTo = process.env.ALERT_EMAIL;
     if (!template) {
       await logAudit({
         actor_type: "system",
@@ -644,47 +743,73 @@ export async function resolveReview(
         inputs: { reviewId, templateId, reason: "template_not_found" },
         outcome: "failure",
       });
-    } else if (!alertTo) {
-      await logAudit({
-        actor_type: "system",
-        action_type: "email_send_skipped",
-        inputs: {
-          reviewId,
-          templateId: template.id,
-          reason: "ALERT_EMAIL not configured — approve recorded but no send",
-        },
-        outcome: "failure",
-      });
     } else {
-      const ctx = await buildEmailContext(fileType, fileId);
-      const subject =
-        draftOverrides?.subject ??
-        (typeof reviewPayload.draft_subject === "string"
-          ? reviewPayload.draft_subject
-          : fillTemplate(template.subject, ctx));
-      const htmlBody =
-        draftOverrides?.body ??
-        (typeof reviewPayload.draft === "string"
-          ? reviewPayload.draft
-          : fillTemplate(template.body, ctx));
-      const textCtx = {
-        ...ctx,
-        key_dates_table: String(ctx.key_dates_table_text ?? ctx.key_dates_table ?? ""),
-      };
-      const textBody =
-        draftOverrides?.body ??
-        (typeof reviewPayload.draft === "string"
-          ? reviewPayload.draft
-          : fillTemplate(template.body, textCtx));
-      await sendEmail({
-        to: [alertTo],
-        subject,
-        body: textBody,
-        html: htmlBody !== textBody ? htmlBody : undefined,
-        fileType,
-        fileId,
-        templateId: template.id,
+      const recipientFields = await loadRecipientFields(fileType, fileId);
+      const recipients = resolveSendRecipients({
+        template,
+        sellerEmail: recipientFields.sellerEmail,
+        clientEmail: recipientFields.clientEmail,
+        thirdPartyEmail: recipientFields.thirdPartyEmail,
+        agentEmail: recipientFields.agentEmail,
+        alertEmail: process.env.ALERT_EMAIL,
       });
+
+      if (recipients.to.length === 0) {
+        await logAudit({
+          actor_type: "system",
+          action_type: "email_send_skipped",
+          inputs: {
+            reviewId,
+            templateId: template.id,
+            reason: recipients.reason ?? "no recipients resolved",
+          },
+          outcome: "failure",
+        });
+      } else {
+        const ctx = await buildEmailContext(fileType, fileId);
+        const subject =
+          draftOverrides?.subject ??
+          (typeof reviewPayload.draft_subject === "string"
+            ? reviewPayload.draft_subject
+            : fillTemplate(template.subject, ctx));
+        const htmlBody =
+          draftOverrides?.body ??
+          (typeof reviewPayload.draft === "string"
+            ? reviewPayload.draft
+            : fillTemplate(template.body, ctx));
+        const textCtx = {
+          ...ctx,
+          key_dates_table: String(ctx.key_dates_table_text ?? ctx.key_dates_table ?? ""),
+        };
+        const textBody =
+          draftOverrides?.body ??
+          (typeof reviewPayload.draft === "string"
+            ? reviewPayload.draft
+            : fillTemplate(template.body, textCtx));
+        await sendEmail({
+          to: recipients.to,
+          cc: recipients.cc.length > 0 ? recipients.cc : undefined,
+          subject,
+          body: textBody,
+          html: htmlBody !== textBody ? htmlBody : undefined,
+          fileType,
+          fileId,
+          templateId: template.id,
+        });
+        if (recipients.usedAlertFallback) {
+          await logAudit({
+            actor_type: "system",
+            action_type: "email_recipient_fallback",
+            inputs: {
+              reviewId,
+              templateId: template.id,
+              to: recipients.to,
+              reason: recipients.reason,
+            },
+            outcome: "success",
+          });
+        }
+      }
     }
   }
 

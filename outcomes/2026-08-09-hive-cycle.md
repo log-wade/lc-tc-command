@@ -21,5 +21,5 @@
 
 ## Suggested Follow-ups
 - Manual smoke test on preview/production after merge
-- Route approved emails to real client recipients (still ALERT_EMAIL today)
+- Route approved emails to real client recipients (done — seller/client To + Carly CC)
 - Await Carly’s key-dates table example
