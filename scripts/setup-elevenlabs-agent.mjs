@@ -12,7 +12,7 @@ const ROOT = join(__dirname, "..");
 
 const apiKey = process.env.ELEVENLABS_API_KEY;
 const baseUrl =
-  process.env.AGENT_WEBHOOK_BASE_URL ?? "https://lc-tc-platform.vercel.app";
+  process.env.AGENT_WEBHOOK_BASE_URL ?? "https://dokind.ai";
 const webhookSecret =
   process.env.AGENT_WEBHOOK_SECRET ?? randomBytes(24).toString("hex");
 

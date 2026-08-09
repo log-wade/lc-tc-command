@@ -1,0 +1,12 @@
+# Supabase auth URL configuration for dokind.ai
+# Applied via Management API on 2026-06-05.
+
+[auth]
+enabled = true
+site_url = "https://dokind.ai"
+additional_redirect_urls = [
+  "https://dokind.ai/**",
+  "https://www.dokind.ai/**",
+  "http://localhost:3000/**",
+  "https://lc-tc-platform.vercel.app/**",
+]
