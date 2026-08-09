@@ -72,15 +72,15 @@ export async function runWorkflow(workflowId: WorkflowId): Promise<WorkflowResul
 
       const templates = await executeAgentTool("list_email_templates", {});
       const tuesdayTemplates = (templates as Array<{ id: string; name: string }>).filter((t) =>
-        t.id.includes("tpl-4") || t.id.includes("tpl-8")
+        t.id === "tpl-3" || t.id === "tpl-7"
       );
       steps.push({ step: "tuesday_templates", status: "ok", output: tuesdayTemplates });
 
       recommended_actions.push(
-        "Draft weekly Tuesday updates (tpl-4 listings, tpl-8 transactions) for each active file."
+        "Draft weekly Tuesday updates (tpl-3 listings, tpl-7 transactions) for each active file."
       );
       recommended_actions.push("Send all client updates by 3 PM CT — queue each in review before send.");
-      recommended_actions.push("For listings: prepare LA recap (tpl-5) for agents by Monday 5 PM if not done.");
+      recommended_actions.push("For listings: prepare LA recap (tpl-4) for agents by Monday 5 PM if not done.");
 
       await logAudit({
         actor_type: "ai_agent",
@@ -101,8 +101,12 @@ export async function runWorkflow(workflowId: WorkflowId): Promise<WorkflowResul
       const files = await executeAgentTool("list_active_files", { limit: 5 });
       steps.push({ step: "recent_files", status: "ok", output: files });
 
-      recommended_actions.push("New listing intake → Template 1 intro within 24 hours (review queue).");
-      recommended_actions.push("New contract intake → Template 6 + 7 within 48 hours (review queue).");
+      recommended_actions.push(
+        "New listing intake → Template 1 intro within 24 hours (or next business day if weekend)."
+      );
+      recommended_actions.push(
+        "New contract intake → Template 5 (congrats) + Template 6 (title/lender) within 48 hours; skip tpl-6 if agent already sent."
+      );
       recommended_actions.push("Confirm deadlines were computed on transaction intake.");
 
       await logAudit({

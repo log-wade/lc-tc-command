@@ -5,7 +5,7 @@ TX Salesperson #723235-SA | Sponsored by Keller Williams Realty ANW
 
 Direct: (512) 555-0184  |  Cell: (512) 555-0291
 carly.bryant@kw.com
-Office hours: Mon–Fri, 8:00 AM – 5:30 PM CT
+Office hours: Mon–Fri, 9:00 AM – 5:00 PM CT
 
 Each office is independently owned and operated.`;
 

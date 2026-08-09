@@ -9,6 +9,7 @@ export async function sendEmail(params: {
   cc?: string[];
   subject: string;
   body: string;
+  html?: string;
   fileType?: string;
   fileId?: string;
   templateId?: string;
@@ -30,12 +31,21 @@ export async function sendEmail(params: {
 
   try {
     const resend = new Resend(apiKey);
+    const hasHtmlTags = /<\/?(?:table|tr|td|th|p|br|a)\b/i.test(params.html ?? params.body);
+    const htmlSource = params.html ?? (hasHtmlTags ? params.body : undefined);
+    const html = htmlSource
+      ? htmlSource.includes("<table")
+        ? htmlSource.replace(/\n/g, "<br/>")
+        : htmlSource.replace(/\n/g, "<br/>")
+      : undefined;
+
     const { data, error } = await resend.emails.send({
       from: FROM,
       to: params.to,
       cc: params.cc,
       subject: params.subject,
       text: params.body,
+      ...(html ? { html } : {}),
     });
 
     if (error) {
