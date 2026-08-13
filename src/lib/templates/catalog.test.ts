@@ -11,13 +11,14 @@ const FORBIDDEN_PLACEHOLDERS = [
 ] as const;
 
 describe("EMAIL_TEMPLATES catalog", () => {
-  it("has exactly ids tpl-1 … tpl-9 contiguous, with no tpl-10", () => {
+  it("keeps tpl-1 … tpl-9 present, adds the photoshoot-prep template, and has no tpl-10", () => {
     const ids = EMAIL_TEMPLATES.map((t) => t.id);
-    assert.deepEqual(
-      ids,
-      Array.from({ length: 9 }, (_, i) => `tpl-${i + 1}`),
-    );
+    for (let i = 1; i <= 9; i += 1) {
+      assert.equal(ids.includes(`tpl-${i}`), true, `missing tpl-${i}`);
+    }
+    assert.equal(ids.includes("tpl-photoshoot-prep"), true);
     assert.equal(ids.includes("tpl-10"), false);
+    assert.equal(new Set(ids).size, ids.length, "template ids must be unique");
   });
 
   it("omits forbidden placeholders from all subjects and bodies", () => {
@@ -43,11 +44,13 @@ describe("EMAIL_TEMPLATES catalog", () => {
     }
   });
 
-  it("tpl-1 introduces Carly with 9 to 5 hours and no Bryant in the body", () => {
+  it("tpl-1 introduces Carly, references the Make-Ready process, and keeps hours in the signature only", () => {
     const tpl1 = getTemplateById("tpl-1");
     assert.ok(tpl1);
     assert.match(tpl1.body, /I'm Carly/);
-    assert.match(tpl1.body, /9 to 5/);
+    assert.match(tpl1.body, /Make-Ready/);
+    // Business hours now live in the signature block, not the body copy.
+    assert.equal(tpl1.body.includes("9 to 5"), false);
     assert.equal(tpl1.body.includes("Bryant"), false);
   });
 
