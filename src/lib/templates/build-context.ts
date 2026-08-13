@@ -24,10 +24,15 @@ type FileMeta = {
     showings?: string | number;
     cancellations?: string | number;
     no_shows?: string | number;
+    reverse_prospecting?: string | number;
+    online_views?: string | number;
+    online_saves?: string | number;
   };
   showing_restrictions?: string;
   showing_notification_preference?: string;
   open_house_details?: string;
+  photo_date?: string;
+  photo_time?: string;
   seller_first_name?: string;
   seller_preferred_name?: string;
   client_first_name?: string;
@@ -156,6 +161,11 @@ export async function buildListingEmailContext(listing: Listing): Promise<EmailC
     showings: stats.showings ?? stats.showings_week ?? "—",
     cancellations: stats.cancellations ?? "—",
     no_shows: stats.no_shows ?? "—",
+    reverse_prospecting: stats.reverse_prospecting ?? "—",
+    online_views: stats.online_views ?? "—",
+    online_saves: stats.online_saves ?? "—",
+    photo_date: meta.photo_date || "To be confirmed",
+    photo_time: meta.photo_time || "To be confirmed",
     review_link: meta.review_link || "https://g.page/r/review",
   };
 }
