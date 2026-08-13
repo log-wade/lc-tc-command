@@ -1,6 +1,6 @@
 # LC/TC Command
 
-Automated **Listing & Transaction Coordination** platform for Texas residential real estate — built from the [Automated LC/TC System Design Document](../Automated_LC_TC_System_Design_Document.docx) (Carly Bryant, KW Austin Northwest, v1.0).
+Automated **Listing & Transaction Coordination** platform for Texas residential real estate — built from the [Automated LC/TC System Design Document](../Automated_LC_TC_System_Design_Document.docx) (Carly Bryant, Keller Williams Southwest, v1.0).
 
 ## Architecture (8 Layers)
 
@@ -40,6 +40,8 @@ See `.env.example`. Production is configured on Vercel with:
 | `ELEVENLABS_API_KEY` | ✅ Voice + ConvAI agent |
 | `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` | ✅ Production agent |
 | `AGENT_WEBHOOK_SECRET` | ✅ Tool webhooks for voice agent |
+| `CURSOR_API_KEY` | ⏳ Cloud Agent implementation for approved fixes |
+| `GITHUB_TOKEN` | ⏳ Automatic merge for approved fix PRs |
 
 Re-sync env to Vercel after key rotation:
 
@@ -60,7 +62,7 @@ vercel env pull .env.local
 vercel --prod
 ```
 
-Cron jobs (deadline reminders, Tuesday updates, review SLA) are configured in `vercel.json`.
+Cron jobs (deadline reminders, Tuesday updates, review SLA, approved-fix reconciliation) are configured in `vercel.json`.
 
 ### Custom domain (`dokind.ai` on GoDaddy)
 
@@ -99,6 +101,17 @@ npm run agent:setup
 # Update NEXT_PUBLIC_ELEVENLABS_AGENT_ID on Vercel if the script prints a new id
 ```
 
+### Report a problem automation
+
+The authenticated app-wide problem reporter can analyze text or transcribed audio, propose a fix,
+and launch implementation only after an explicit approval. To enable approved fixes:
+
+1. Connect `log-wade/lc-tc-command` to Cursor Cloud Agents and configure its environment.
+2. Set `CURSOR_API_KEY`, `CURSOR_REPO_URL`, and a fine-grained `GITHUB_TOKEN` with repository
+   contents and pull-request write access in Vercel.
+3. Confirm the Vercel project deploys production from `main`.
+4. Apply `supabase/migrations/014_problem_reports.sql`.
+
 ## Enterprise platform (Phases 1–5)
 
 After pulling, apply migration `004_enterprise_platform.sql` in the Supabase SQL editor (or `supabase db push`), then create the first admin:
@@ -128,4 +141,4 @@ Set `AUTH_DISABLED=true` only for local dev without login. Production requires a
 
 ## License
 
-Proprietary — Keller Williams Realty Austin Northwest Market Center operational use.
+Proprietary — Keller Williams Southwest operational use.

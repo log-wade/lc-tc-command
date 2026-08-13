@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { EMAIL_TEMPLATES, getTemplateById } from "./catalog";
+import { fillTemplate, SIGNATURE_BLOCK } from "./signature";
 
 const FORBIDDEN_PLACEHOLDERS = [
   "photographer_name",
@@ -11,12 +12,14 @@ const FORBIDDEN_PLACEHOLDERS = [
 ] as const;
 
 describe("EMAIL_TEMPLATES catalog", () => {
-  it("keeps tpl-1 … tpl-9 present, adds the photoshoot-prep template, and has no tpl-10", () => {
+  it("keeps core and listing-workflow templates present without duplicate IDs", () => {
     const ids = EMAIL_TEMPLATES.map((t) => t.id);
     for (let i = 1; i <= 9; i += 1) {
       assert.equal(ids.includes(`tpl-${i}`), true, `missing tpl-${i}`);
     }
     assert.equal(ids.includes("tpl-photoshoot-prep"), true);
+    assert.equal(ids.includes("tpl-listing-docs"), true);
+    assert.equal(ids.includes("tpl-ecad-needed"), true);
     assert.equal(ids.includes("tpl-10"), false);
     assert.equal(new Set(ids).size, ids.length, "template ids must be unique");
   });
@@ -44,6 +47,17 @@ describe("EMAIL_TEMPLATES catalog", () => {
     }
   });
 
+  it("uses a single non-redundant sign-off and omits direct/cell numbers", () => {
+    assert.doesNotMatch(SIGNATURE_BLOCK, /Direct:|Cell:/i);
+
+    for (const template of EMAIL_TEMPLATES) {
+      const filled = fillTemplate(template.body, {});
+      assert.doesNotMatch(filled, /\nCarly\nCarly Bryant/);
+      assert.doesNotMatch(filled, /\nThanks,\nCarly/);
+      assert.doesNotMatch(filled, /Direct:|Cell:/i);
+    }
+  });
+
   it("tpl-1 introduces Carly, references the Make-Ready process, and keeps hours in the signature only", () => {
     const tpl1 = getTemplateById("tpl-1");
     assert.ok(tpl1);
@@ -60,6 +74,25 @@ describe("EMAIL_TEMPLATES catalog", () => {
     assert.match(tpl5.body, /\{\{key_dates_table\}\}/);
     assert.equal(tpl5.body.includes("Intro emails to lender"), false);
     assert.equal(tpl5.subject.includes("Intro emails to lender"), false);
+  });
+
+  it("listing documents template gives accurate survey and T-47 instructions", () => {
+    const template = getTemplateById("tpl-listing-docs");
+    assert.ok(template);
+    assert.match(template.body, /wet ink/i);
+    assert.match(template.body, /notary/i);
+    assert.match(template.body, /cannot be electronically signed/i);
+    assert.match(template.body, /Sellers Shield/);
+  });
+
+  it("ECAD template explains the trigger, timing, and booking path", () => {
+    const template = getTemplateById("tpl-ecad-needed");
+    assert.ok(template);
+    assert.match(template.body, /Austin city limits/i);
+    assert.match(template.body, /Austin Energy/i);
+    assert.match(template.body, /at least 10 years old/i);
+    assert.match(template.body, /austinauditors\.com\/book/);
+    assert.match(template.body, /before the resale contract is executed/i);
   });
 
   it('tpl-6 mentions "Do Kind Group"', () => {

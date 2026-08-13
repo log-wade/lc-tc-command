@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { logAudit } from "../audit";
+import { breakLinesOutsideTables } from "../templates/html-draft";
 
 const FROM =
   process.env.EMAIL_FROM ?? "Carly Bryant <carly@dokindtx.com>";
@@ -33,11 +34,7 @@ export async function sendEmail(params: {
     const resend = new Resend(apiKey);
     const hasHtmlTags = /<\/?(?:table|tr|td|th|p|br|a)\b/i.test(params.html ?? params.body);
     const htmlSource = params.html ?? (hasHtmlTags ? params.body : undefined);
-    const html = htmlSource
-      ? htmlSource.includes("<table")
-        ? htmlSource.replace(/\n/g, "<br/>")
-        : htmlSource.replace(/\n/g, "<br/>")
-      : undefined;
+    const html = htmlSource ? breakLinesOutsideTables(htmlSource) : undefined;
 
     const { data, error } = await resend.emails.send({
       from: FROM,

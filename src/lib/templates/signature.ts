@@ -1,9 +1,8 @@
 export const SIGNATURE_BLOCK = `Carly Bryant
 Senior Listing & Transaction Coordinator
-Keller Williams Realty — Austin Northwest Market Center
-TX Salesperson #723235-SA | Sponsored by Keller Williams Realty ANW
+Keller Williams Southwest
+TX Salesperson #723235-SA | Sponsored by Keller Williams Southwest
 
-Direct: (512) 555-0184  |  Cell: (512) 555-0291
 carly@dokindtx.com
 Office hours: Mon–Fri, 9:00 AM – 5:00 PM CT
 

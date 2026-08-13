@@ -32,8 +32,7 @@ export function resolveTransactionStage(deadlines: Deadline[]): TransactionStage
   if (isMet(deadlines, "closing")) return "closed";
 
   const optionDone = isMet(deadlines, "option_period_end");
-  const financingDone =
-    isMet(deadlines, "buyer_approval") || isMet(deadlines, "loan_application");
+  const financingDone = isMet(deadlines, "buyer_approval");
   const titleDone = isMet(deadlines, "title_commitment");
   const cdDone = isMet(deadlines, "cd_issue");
 
@@ -69,7 +68,7 @@ export function suggestStatusSummary(deadlines: Deadline[]): string {
     case "financing":
       return pending.length
         ? `Past option — financing in progress: ${pending.join("; ")}`
-        : "Past option — loan application and buyer approval in progress.";
+        : "Past option — buyer financing approval in progress.";
     case "title":
       return pending.length
         ? `Title & underwriting underway: ${pending.join("; ")}`

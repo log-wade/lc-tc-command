@@ -23,6 +23,7 @@ function validateStep(step: number, data: Record<string, string>): string | null
   if (step === 1) {
     if (!data.effective_date) return "Effective date is required";
     if (!data.closing_date) return "Closing date is required";
+    if (!data.survey_required) return "Select the survey / T-47 delivery terms";
   }
   if (step === 2) {
     if (!data.client_email?.trim()) return "Client email is required for outbound templates";
@@ -126,12 +127,38 @@ export function TransactionWizard() {
               name="option_days"
               type="number"
               defaultValue={formData.option_days ?? "10"}
+              hint="Calendar days after the effective date. Ends at 5:00 PM CT on the last day."
             />
             <FormField
               label="Financing days"
               name="financing_days"
               type="number"
               defaultValue={formData.financing_days ?? "21"}
+              hint="Buyer financing approval notice only — not appraisal / property approval."
+            />
+            <FormField
+              label="Title commitment (days)"
+              name="title_commitment_days"
+              type="number"
+              defaultValue={formData.title_commitment_days ?? "20"}
+              hint="Per contract paragraph 6A. Default 20 days."
+            />
+            <FormField
+              label="Survey / T-47 delivery?"
+              name="survey_required"
+              options={[
+                { value: "yes", label: "Yes — seller delivers existing survey + T-47" },
+                { value: "no", label: "Not applicable (for example, a condominium)" },
+              ]}
+              defaultValue={formData.survey_required}
+              required={step === 1}
+            />
+            <FormField
+              label="Survey / T-47 delivery (days after execution)"
+              name="survey_days"
+              type="number"
+              defaultValue={formData.survey_days ?? "5"}
+              hint="Use the write-in from paragraph 6C. Miss it and the seller is in breach and may owe a new survey."
             />
             <FormField label="Option fee ($)" name="option_fee_amount" type="number" defaultValue={formData.option_fee_amount} />
             <FormField label="Earnest money ($)" name="earnest_money_amount" type="number" defaultValue={formData.earnest_money_amount} />

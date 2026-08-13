@@ -32,11 +32,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: "Do Kind · LC/TC Command",
   description:
-    "Run every listing and transaction from one place. The Do Kind coordination workspace for Keller Williams Austin Northwest.",
+    "Run every listing and transaction from one place. The Do Kind coordination workspace for Keller Williams Southwest.",
   openGraph: {
     title: "Do Kind · LC/TC Command",
     description:
-      "Run every listing and transaction from one place. The Do Kind coordination workspace for Keller Williams Austin Northwest.",
+      "Run every listing and transaction from one place. The Do Kind coordination workspace for Keller Williams Southwest.",
     url: APP_URL,
     siteName: "Do Kind",
     locale: "en_US",

@@ -3,6 +3,7 @@ import { getReviewQueue } from "@/lib/data";
 import { getTemplateById, resolveTemplateId } from "@/lib/templates/catalog";
 import { fillTemplate } from "@/lib/templates/signature";
 import { buildEmailContext } from "@/lib/templates/build-context";
+import { parseDraftBlocks } from "@/lib/templates/html-draft";
 import { PageHeader } from "@/components/ui/page-header";
 import { ReviewActions } from "@/components/reviews/review-actions";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -117,9 +118,48 @@ export default async function ReviewsPage() {
                     </p>
                   )}
                   {r.draftBody && (
-                    <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap font-sans text-xs leading-relaxed text-ink">
-                      {r.draftBody.replace(/<[^>]+>/g, " ").replace(/[ \t]+\n/g, "\n")}
-                    </pre>
+                    <div className="mt-3 max-h-64 space-y-3 overflow-auto text-xs leading-relaxed text-ink">
+                      {parseDraftBlocks(r.draftBody).map((block, index) =>
+                        block.kind === "text" ? (
+                          <p key={index} className="whitespace-pre-wrap">
+                            {block.text}
+                          </p>
+                        ) : (
+                          <div key={index} className="overflow-x-auto">
+                            <table className="w-full min-w-[34rem] border-collapse text-left">
+                              {block.header.length > 0 && (
+                                <thead>
+                                  <tr>
+                                    {block.header.map((heading, cellIndex) => (
+                                      <th
+                                        key={cellIndex}
+                                        className="border border-border bg-brand-bg px-2 py-1 font-semibold"
+                                      >
+                                        {heading}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                              )}
+                              <tbody>
+                                {block.rows.map((row, rowIndex) => (
+                                  <tr key={rowIndex}>
+                                    {row.map((cell, cellIndex) => (
+                                      <td
+                                        key={cellIndex}
+                                        className="border border-border bg-white px-2 py-1 align-top"
+                                      >
+                                        {cell}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )
+                      )}
+                    </div>
                   )}
                 </div>
               )}

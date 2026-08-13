@@ -23,10 +23,17 @@ function validateStep(step: number, data: Record<string, string>): string | null
   if (step === 0) {
     if (!data.property_address?.trim()) return "Street address is required";
     if (!data.county?.trim()) return "County is required";
+    if (!data.year_built) return "Year built is required for ECAD screening";
+    if (!data.in_austin_city_limits) return "Select whether the property is in Austin city limits";
+    if (!data.austin_energy_service) return "Select whether Austin Energy serves the property";
   }
   if (step === 1) {
     if (!data.seller_legal_name?.trim()) return "Seller legal name is required";
     if (!data.seller_email?.trim()) return "Seller email is required";
+    if (!data.survey_on_file) return "Select whether the seller has a current survey";
+  }
+  if (step === 2 && Boolean(data.photo_date) !== Boolean(data.photo_time)) {
+    return "Photoshoot date and start time must be entered together";
   }
   return null;
 }
@@ -58,6 +65,9 @@ export function ListingWizard() {
     const payload: Record<string, unknown> = { ...merged };
     payload.has_hoa = merged.has_hoa === "yes";
     payload.mud_pid_sid = merged.mud_pid_sid === "yes";
+    payload.in_austin_city_limits = merged.in_austin_city_limits === "yes";
+    payload.austin_energy_service = merged.austin_energy_service === "yes";
+    payload.survey_on_file = merged.survey_on_file === "yes";
 
     const res = await fetch("/api/intake/listing", {
       method: "POST",
@@ -111,6 +121,34 @@ export function ListingWizard() {
             <FormField label="Beds" name="beds" type="number" defaultValue={formData.beds} />
             <FormField label="Baths" name="baths" type="number" step="0.5" defaultValue={formData.baths} />
             <FormField
+              label="Year built"
+              name="year_built"
+              type="number"
+              required={step === 0}
+              defaultValue={formData.year_built}
+              hint="Used with the Austin location/service answers to determine ECAD applicability."
+            />
+            <FormField
+              label="Inside Austin city limits?"
+              name="in_austin_city_limits"
+              required={step === 0}
+              options={[
+                { value: "yes", label: "Yes" },
+                { value: "no", label: "No" },
+              ]}
+              defaultValue={formData.in_austin_city_limits}
+            />
+            <FormField
+              label="Austin Energy service area?"
+              name="austin_energy_service"
+              required={step === 0}
+              options={[
+                { value: "yes", label: "Yes" },
+                { value: "no", label: "No" },
+              ]}
+              defaultValue={formData.austin_energy_service}
+            />
+            <FormField
               label="HOA?"
               name="has_hoa"
               options={[
@@ -152,6 +190,38 @@ export function ListingWizard() {
               defaultValue={formData.seller_email}
             />
             <FormField label="Phone" name="seller_phone" type="tel" defaultValue={formData.seller_phone} />
+            <FormField
+              label="Current survey on file?"
+              name="survey_on_file"
+              required={step === 1}
+              options={[
+                { value: "yes", label: "Yes — request survey and notarized T-47" },
+                { value: "no", label: "No / unknown" },
+              ]}
+              defaultValue={formData.survey_on_file}
+              hint="T-47 must be wet-ink signed and notarized; it cannot be e-signed."
+            />
+            <FormField
+              label="Seller disclosure status"
+              name="disclosure_status"
+              options={[
+                { value: "needed", label: "Needed" },
+                { value: "sent", label: "Sent through Sellers Shield" },
+                { value: "received", label: "Received" },
+                { value: "not_applicable", label: "Not applicable" },
+              ]}
+              defaultValue={formData.disclosure_status ?? "needed"}
+            />
+            <FormField
+              label="Spare lockbox key"
+              name="spare_key_status"
+              options={[
+                { value: "needed", label: "Needed" },
+                { value: "received", label: "Received" },
+                { value: "not_applicable", label: "Not applicable" },
+              ]}
+              defaultValue={formData.spare_key_status ?? "needed"}
+            />
           </FormSection>
         </WizardPanel>
       </div>
@@ -160,11 +230,35 @@ export function ListingWizard() {
         <WizardPanel>
           <FormSection title="Showing & marketing" description="Photo package and showing rules.">
             <FormField
+              label="Staging status"
+              name="staging_status"
+              options={[
+                { value: "needed", label: "Needs scheduling" },
+                { value: "scheduled", label: "Scheduled" },
+                { value: "completed", label: "Completed" },
+                { value: "not_applicable", label: "Not applicable" },
+              ]}
+              defaultValue={formData.staging_status ?? "needed"}
+            />
+            <FormField
               label="Photo package"
               name="photo_package"
               className="sm:col-span-2"
               placeholder="Premium HDR, Drone…"
               defaultValue={formData.photo_package}
+            />
+            <FormField
+              label="Photoshoot date"
+              name="photo_date"
+              type="date"
+              defaultValue={formData.photo_date}
+              hint="Enter this with a start time to queue the photoshoot confirmation for review."
+            />
+            <FormField
+              label="Photoshoot start time"
+              name="photo_time"
+              type="time"
+              defaultValue={formData.photo_time}
             />
             <FormField
               label="Showing instructions"

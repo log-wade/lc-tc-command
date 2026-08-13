@@ -39,6 +39,9 @@ export interface ListingWeeklyStats {
   showings?: string | number;
   cancellations?: string | number;
   no_shows?: string | number;
+  reverse_prospecting?: string | number;
+  online_views?: string | number;
+  online_saves?: string | number;
 }
 
 export interface ListingMetadata {
@@ -48,7 +51,19 @@ export interface ListingMetadata {
   open_house_details?: string;
   seller_first_name?: string;
   seller_preferred_name?: string;
+  seller_legal_name?: string;
   seller_email?: string;
+  seller_phone?: string;
+  ecad_required?: boolean;
+  in_austin_city_limits?: boolean;
+  austin_energy_service?: boolean;
+  survey_on_file?: boolean;
+  t47_status?: string;
+  staging_status?: string;
+  disclosure_status?: string;
+  spare_key_status?: string;
+  photo_date?: string;
+  photo_time?: string;
   review_link?: string;
   [key: string]: unknown;
 }
@@ -65,6 +80,10 @@ export interface Listing {
   list_price?: number;
   target_list_date?: string;
   actual_list_date?: string;
+  sqft?: number;
+  beds?: number;
+  baths?: number;
+  year_built?: number;
   listing_agent_id?: string;
   compliance_status?: string;
   go_live_approved?: boolean;
@@ -74,6 +93,10 @@ export interface Listing {
   open_house_details?: string;
   has_hoa?: boolean;
   hoa_name?: string;
+  mud_pid_sid?: boolean;
+  photo_package?: string;
+  photo_session_at?: string;
+  lockbox_serial?: string;
   metadata?: ListingMetadata;
   created_at?: string;
 }
@@ -88,6 +111,10 @@ export interface TransactionMetadata {
   title_company?: string;
   third_party_name?: string;
   third_party_email?: string;
+  /** Contract write-ins the deadline engine needs but the table has no column for. */
+  title_commitment_days?: number;
+  survey_required?: boolean;
+  survey_days?: number;
   status_summary?: string;
   closer_name?: string;
   closer_phone?: string;

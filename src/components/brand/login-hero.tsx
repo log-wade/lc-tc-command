@@ -20,7 +20,7 @@ export function LoginHero({ className }: { className?: string }) {
       <div className="relative z-10 max-w-lg">
         <span className="inline-flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-widest text-brand-teal">
           <span className="h-px w-6 bg-brand-teal" />
-          Keller Williams Austin Northwest
+          Keller Williams Southwest
         </span>
 
         <h1 className="font-display mt-6 text-4xl uppercase leading-none tracking-tight text-ink sm:text-5xl xl:text-6xl">

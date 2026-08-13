@@ -190,6 +190,21 @@ export const memoryStore = {
     deadlines.push(...items);
     return items;
   },
+  deleteReplaceableDeadlines: (fileType: string, fileId: string) => {
+    let removed = 0;
+    for (let i = deadlines.length - 1; i >= 0; i -= 1) {
+      const d = deadlines[i];
+      if (
+        d.file_type === fileType &&
+        d.file_id === fileId &&
+        ["pending", "missed", "cancelled"].includes(d.status)
+      ) {
+        deadlines.splice(i, 1);
+        removed += 1;
+      }
+    }
+    return removed;
+  },
 
   reviews: () => [...reviews],
   addReview: (item: Record<string, unknown>) => {

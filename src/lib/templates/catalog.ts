@@ -42,7 +42,50 @@ Throughout this Make-Ready / Coming Soon process, I'm here to answer any questio
 
 Looking forward to working with you.
 
-Carly
+Thank you,
+{{signature_block}}`,
+  },
+  {
+    id: "tpl-listing-docs",
+    name: "Listing Documents Needed / Survey & T-47",
+    when: "At listing intake, after the welcome email",
+    category: "Listing",
+    requiresReview: true,
+    subject: "Documents Needed for {{property_address}}",
+    body: `Hi {{seller_first_name}},
+
+As we prepare {{property_address}} for the market, here are the documents and items we need from you:
+
+  • Current survey: Please reply with a clear PDF copy if you have one.
+  • T-47 affidavit: If you have a current survey, complete the T-47 using the survey and acquisition date, list any changes to the property (or write NONE), then sign it in wet ink before a notary. The T-47 cannot be electronically signed. If you need a blank form or help finding a notary, let me know.
+  • Listing documents: Watch for the Lone Wolf e-sign packet, which may include the Listing Agreement, Information About Brokerage Services, General Notice, Warning Regarding Wire Fraud, and Seller Net Sheet.
+  • Seller's Disclosure Notice: Please complete the Sellers Shield questionnaire we send. The optional paid legal-protection upgrade is not required unless you want it.
+  • Spare key: Please have a working spare key ready for the lockbox before photography.
+
+Reply here with the survey or any questions. I’m happy to walk you through the T-47 before it is notarized.
+
+Thank you,
+{{signature_block}}`,
+  },
+  {
+    id: "tpl-ecad-needed",
+    name: "ECAD Audit Needed",
+    when: "At intake when the property is in Austin city limits, served by Austin Energy, and at least 10 years old",
+    category: "Listing",
+    requiresReview: true,
+    subject: "ECAD Energy Audit Needed for {{property_address}}",
+    body: `Hi {{seller_first_name}},
+
+Because {{property_address}} is within Austin city limits, receives Austin Energy service, and is at least 10 years old, the City of Austin's ECAD ordinance requires an energy audit before the property is sold.
+
+You can schedule the audit with Austin Auditors here:
+https://austinauditors.com/book/
+
+Pricing is typically about $159 and up, depending on the property. The report does not need to delay our go-live date, but it must be completed and disclosed before the resale contract is executed.
+
+Please send me the appointment details once scheduled, and forward the completed report when you receive it.
+
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -92,7 +135,7 @@ A couple of tips: pets are best kept crated or off-site during the shoot, and pl
 
 If anything comes up or you have questions as you prepare, just reach out — I'm happy to help. Can't wait to see how it turns out!
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -119,7 +162,7 @@ Here's what to know:
 
 We're thrilled to be under way — let's get this home sold!
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -141,7 +184,7 @@ Feedback themes:
 
 As always, {{agent_first_name}} and I are watching activity closely and are here if you have questions. Reach out anytime — we're glad to be in your corner this week.
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -167,7 +210,7 @@ Online exposure:
 
 Client update going out Tuesday by 3 PM unless you want me to hold.
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -189,7 +232,7 @@ As we move through the transaction, you'll hear from me every Tuesday with a sho
 
 I know there's a lot of moving parts, but we're so excited for you and are here to help every step of the way — now let's get to closing!
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -205,8 +248,7 @@ I'm Carly, transaction coordinator for the Do Kind Group, and I'll be assisting 
 
 Please confirm receipt and kindly CC me on all transaction communications. Looking forward to working with you all — let's get this bad boy to the closing table! Wahoo.
 
-Thanks,
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -235,7 +277,7 @@ Action needed: {{action_needed}}
 
 As always, {{agent_first_name}} and I are here if anything comes up. Talk soon!
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -265,7 +307,7 @@ IMPORTANT: Verify wire instructions by PHONE using the closer's number above. Ne
 
 We're almost there — looking forward to celebrating with you at the closing table!
 
-Carly
+Thank you,
 {{signature_block}}`,
   },
   {
@@ -286,7 +328,6 @@ If you have a moment, we'd be honored if you'd share your experience. A quick Go
 Thank you again for trusting us with one of life's biggest milestones. We're cheering you on in this next chapter — and we're only a call or text away if you ever need anything.
 
 With gratitude,
-Carly
 {{signature_block}}`,
   },
 ];

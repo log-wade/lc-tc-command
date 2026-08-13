@@ -1,4 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
+import { centralInstant, toCalendarDate } from "../deadlines/calendar";
 import { memoryStore } from "../store/memory-store";
 import { createServiceClient, isDatabaseConfigured, useMemoryStore } from "../supabase/server";
 import type { Deadline, Listing, Transaction } from "../types";
@@ -50,11 +51,19 @@ type FileMeta = {
   third_party_name?: string;
   status_summary?: string;
   action_needed?: string;
+  title_commitment_days?: number;
+  survey_required?: boolean;
+  survey_days?: number;
 };
 
 function asMeta(raw: unknown): FileMeta {
   if (raw && typeof raw === "object") return raw as FileMeta;
   return {};
+}
+
+function numberOrUndefined(value: unknown): number | undefined {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
 function notificationCopy(pref?: string): string {
@@ -187,12 +196,18 @@ export async function buildTransactionEmailContext(
     deadlines,
     optionDays: transaction.option_days,
     financingDays: transaction.financing_days,
+    titleCommitmentDays: numberOrUndefined(meta.title_commitment_days),
+    surveyDays: numberOrUndefined(meta.survey_days),
     hasHoa,
     titleCompany,
   });
 
   const milestones = summarizeMilestones(deadlines);
-  const closing = transaction.closing_date ? new Date(transaction.closing_date) : null;
+  // Contract dates are Central calendar days; anchor at midday so the countdown
+  // does not drift by a day when the server runs in UTC.
+  const closing = transaction.closing_date
+    ? centralInstant(toCalendarDate(transaction.closing_date), 12)
+    : null;
   const daysToClosing = closing
     ? Math.max(0, differenceInCalendarDays(closing, new Date()))
     : "";
