@@ -31,15 +31,66 @@ Welcome! I'm Carly, the Listing Coordinator working with {{agent_first_name}} on
 
 Here's the short version of what to expect over the next 7–10 days:
 
-  • Photography: I'll coordinate professional photography this week.
+  • Staging Consultation: We'll start with a staging consultation so your home is styled to show its very best for photos and showings.
+  • Photography: I'll coordinate professional photography, completed at least 2 days before your intended "Go Live" date.
   • Sign + Lockbox: {{agent_first_name}} will deliver these prior to the photo session.
+  • Disclosures + Notices: I'll help you complete and provide any necessary disclosures and notices — Seller's Disclosure Notice, PID/MUD notices, Survey & T-47, and similar — where applicable.
   • MLS Listing: I'll build your full MLS record and send it to {{agent_first_name}} for review — nothing publishes without your green light.
   • Going Live: Once approved, I'll activate the listing and send you a "We Are Live" email.
-  • Showings + Feedback: Weekly updates every Tuesday by 3 PM.
 
-If anything comes up, reach me at the number below — Mon–Fri, 9 to 5. For urgent matters outside those hours, {{agent_first_name}} is your first call.
+Throughout this Make-Ready / Coming Soon process, I'm here to answer any questions you have — so please never hesitate to reach out. {{agent_first_name}} and I are genuinely excited to work with you and to get your home sold.
 
 Looking forward to working with you.
+
+Carly
+{{signature_block}}`,
+  },
+  {
+    id: "tpl-photoshoot-prep",
+    name: "Photoshoot Confirmation & How to Prepare",
+    when: "Once photography is scheduled — send 1–2 days before the shoot",
+    category: "Listing",
+    requiresReview: true,
+    subject: "Photoshoot Confirmed — {{property_address}} — {{photo_date}}",
+    body: `Hi {{seller_first_name}},
+
+Great news — professional photography for {{property_address}} is confirmed! Photos are one of the biggest drivers of buyer interest, so here's everything you need to have the home camera-ready.
+
+Photoshoot details:
+
+  • Date: {{photo_date}}
+  • Time: {{photo_time}}
+
+Our professional photographer will arrive at the scheduled time. To help your home look its absolute best, here's a quick prep checklist:
+
+  Whole home
+  • Turn on every light and replace any burnt-out bulbs; open blinds and curtains for natural light.
+  • Declutter countertops, floors, and surfaces — less is more on camera.
+  • Put away personal items (family photos, mail, calendars) and any valuables.
+  • Tuck away cords, chargers, remotes, and visible electronics.
+  • Hide trash cans, pet bowls, litter boxes, toys, and crates.
+
+  Kitchen
+  • Clear the counters down to one or two decorative items.
+  • Remove magnets, notes, and photos from the fridge.
+  • Stow dish soap, sponges, and towels.
+
+  Bathrooms
+  • Clear counters; stow toiletries, toothbrushes, and trash cans.
+  • Close toilet lids, hang fresh towels, and remove floor mats.
+
+  Bedrooms
+  • Make the beds with clean, wrinkle-free linens.
+  • Clear nightstands and dressers to a minimum.
+
+  Curb appeal
+  • Mow, trim, and clear the yard of hoses, tools, and toys.
+  • Sweep the walkways and porch; move cars out of the driveway and off the front curb.
+  • Bring trash and recycling bins out of view.
+
+A couple of tips: pets are best kept crated or off-site during the shoot, and please have the home fully ready before the photographer arrives so we can stay on schedule.
+
+If anything comes up or you have questions as you prepare, just reach out — I'm happy to help. Can't wait to see how it turns out!
 
 Carly
 {{signature_block}}`,
@@ -57,9 +108,12 @@ Exciting news — {{property_address}} is LIVE on the market! Buyers can find it
 
 Here's what to know:
 
-  • Showings: Buyer agents request appointments through ShowingTime. {{showing_instructions}}
-  • Showing restrictions: {{showing_restrictions}} If you already know days or times you need blocked off (or want to add any), just let me know and I'll update ShowingTime right away.
-  • Notifications: {{showing_notifications}} When a showing is requested, you'll typically get a text and/or email from the showing service so you can confirm, deny, or ask to reschedule — this can vary by property type and whether the home is occupied.
+  • Showings: Buyer agents request appointments through ShowingTime, the showing management service we use to schedule, confirm, and gather feedback on every visit. I'd recommend downloading the free "Home by ShowingTime" app so you can approve, deny, or reschedule requests right from your phone, see who's coming, and read feedback all in one place. {{showing_instructions}}
+      – iPhone / iPad: https://apps.apple.com/us/app/home-by-showingtime/id1433915149
+      – Android: https://play.google.com/store/apps/details?id=com.showingtime.ConsumerApp
+      – Desktop: https://home.showingtime.com
+    Notifications: {{showing_notifications}} When a showing is requested, you'll get a text and/or email so you can confirm, deny, or ask to reschedule — how this works can vary by property type and whether the home is occupied.
+  • Showing parameters: {{showing_restrictions}} If there's anything you'd like us to set in ShowingTime — a minimum notice window, specific days or times to block off, or special showing instructions — just let me know and I'll update it right away.
   • Open house: {{open_house_details}}
   • Feedback: I'll send you a weekly summary every Tuesday by 3 PM with showings and themes from buyer agents.
 
@@ -104,6 +158,12 @@ Supra + ShowingTime pull for the week:
   • Showings: {{showings}} | Cancellations: {{cancellations}} | No-shows: {{no_shows}}
   • Feedback: {{feedback_count}} of {{showings}}
   • Themes: {{feedback_themes}}
+
+Online exposure:
+
+  • MLS reverse prospecting: {{reverse_prospecting}}
+  • Portal views (Zillow/Realtor.com/etc.): {{online_views}}
+  • Saves / favorites: {{online_saves}}
 
 Client update going out Tuesday by 3 PM unless you want me to hold.
 
