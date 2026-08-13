@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 import { TourRestartButton } from "@/components/onboarding/tour-restart-button";
+import { ProblemReportWidget } from "@/components/problem-report/problem-report-widget";
 
 const workNav = [
   { href: "/assistant", label: "Assistant", icon: Bot, desc: "AI chat & voice", tourId: "nav-assistant" },
@@ -124,7 +125,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <div className="border-b border-sidebar-border px-4 py-5">
         <BrandMark />
         <p className="mt-3 text-[11px] leading-snug text-ink-muted">
-          Keller Williams Austin Northwest
+          Keller Williams Southwest
         </p>
       </div>
 
@@ -287,6 +288,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1">{children}</main>
       </div>
     </div>
+    <ProblemReportWidget />
     </OnboardingProvider>
   );
 }

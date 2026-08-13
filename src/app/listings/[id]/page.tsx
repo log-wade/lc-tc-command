@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { DeadlineRow } from "@/components/ui/deadline-row";
 import { GoLiveButton } from "@/components/listings/go-live-button";
+import { ListingPreparationForm } from "@/components/listings/listing-preparation-form";
 import { WeeklyStatsForm } from "@/components/listings/weekly-stats-form";
 import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
 import type { ListingWeeklyStats } from "@/lib/types";
@@ -62,6 +63,29 @@ export default async function ListingDetailPage({
             <DetailRow label="List price" value={formatCurrency(listing.list_price)} />
             <DetailRow label="Target list" value={formatDate(listing.target_list_date)} />
             <DetailRow label="Went live" value={formatDate(listing.actual_list_date)} />
+            <DetailRow label="Year built" value={listing.year_built ? String(listing.year_built) : "—"} />
+            <DetailRow
+              label="ECAD"
+              value={listing.metadata?.ecad_required ? "Required — audit notice queued" : "Not required"}
+            />
+            <DetailRow
+              label="Survey / T-47"
+              value={
+                listing.metadata?.survey_on_file
+                  ? `Survey on file · T-47 ${String(listing.metadata.t47_status ?? "needed")}`
+                  : "No current survey reported"
+              }
+            />
+            <DetailRow
+              label="Photoshoot"
+              value={
+                listing.metadata?.photo_date
+                  ? listing.metadata.photo_time
+                    ? `${String(listing.metadata.photo_date)} at ${String(listing.metadata.photo_time)}`
+                    : `${String(listing.metadata.photo_date)} — start time needed`
+                  : "Not scheduled"
+              }
+            />
             <DetailRow label="MLS #" value={listing.mls_number ?? "Not assigned"} />
             <DetailRow label="MC compliance" value={listing.compliance_status ?? "pending"} />
           </dl>
@@ -96,7 +120,22 @@ export default async function ListingDetailPage({
         </section>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-6">
+        <ListingPreparationForm
+          listingId={listing.id}
+          initial={{
+            year_built: listing.year_built,
+            in_austin_city_limits: listing.metadata?.in_austin_city_limits,
+            austin_energy_service: listing.metadata?.austin_energy_service,
+            survey_on_file: listing.metadata?.survey_on_file,
+            t47_status: listing.metadata?.t47_status,
+            staging_status: listing.metadata?.staging_status,
+            disclosure_status: listing.metadata?.disclosure_status,
+            spare_key_status: listing.metadata?.spare_key_status,
+            photo_date: listing.metadata?.photo_date,
+            photo_time: listing.metadata?.photo_time,
+          }}
+        />
         <WeeklyStatsForm
           listingId={listing.id}
           initial={{
@@ -109,6 +148,14 @@ export default async function ListingDetailPage({
             cancellations:
               weekly.cancellations != null ? String(weekly.cancellations) : undefined,
             no_shows: weekly.no_shows != null ? String(weekly.no_shows) : undefined,
+            reverse_prospecting:
+              weekly.reverse_prospecting != null
+                ? String(weekly.reverse_prospecting)
+                : undefined,
+            online_views:
+              weekly.online_views != null ? String(weekly.online_views) : undefined,
+            online_saves:
+              weekly.online_saves != null ? String(weekly.online_saves) : undefined,
             open_house_details: openHouse,
           }}
         />

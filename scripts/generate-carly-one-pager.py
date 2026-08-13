@@ -132,7 +132,7 @@ def main():
         [[
             Paragraph(
                 "Do Kind · LC/TC Command<br/>"
-                "<font size='8' color='#6B6764'>KW Austin Northwest · Carly Bryant</font>",
+                "<font size='8' color='#6B6764'>Keller Williams Southwest · Carly Bryant</font>",
                 styles["title"],
             )
         ]],
@@ -232,7 +232,7 @@ def main():
     story.append(HRFlowable(width="100%", thickness=0.5, color=BRAND_BORDER))
     story.append(
         Paragraph(
-            "Proprietary — Keller Williams Austin Northwest · TREC #723235-SA · dokind.ai",
+            "Proprietary — Keller Williams Southwest · TREC #723235-SA · dokind.ai",
             styles["small"],
         )
     )

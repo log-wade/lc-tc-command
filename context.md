@@ -16,6 +16,7 @@ Run parallel implementers for independent app-code tasks. Use CLI for git/Vercel
 | H3 | Closing prep form on transaction detail (tpl-8 fields) | worker | completed |
 | H4 | Verify ALERT_EMAIL / Resend on Vercel | orchestrator | completed |
 | H5 | Commit + open PR for template work | orchestrator | completed |
+| H6 | Reconcile listing/transaction source documents with platform | hive reviewers + orchestrator | completed |
 
 ## Recent Outcomes (last 10)
 | Date | Task | Status | Result |
@@ -26,9 +27,13 @@ Run parallel implementers for independent app-code tasks. Use CLI for git/Vercel
 | 2026-08-09 | H4 Vercel env check | success | ALERT_EMAIL + RESEND_API_KEY present in Production |
 | 2026-08-09 | H5 commit + PR | success | https://github.com/log-wade/lc-tc-command/pull/3 |
 | 2026-08-09 | Email template revisions + migrations 005/006 | success | tpl-1…9 live on Supabase |
+| 2026-08-13 | H6 source-document reconciliation | success | Transaction deadline safety + editable terms; listing ECAD, T-47/docs, make-ready, photoshoot, and online-stats workflows implemented; 33 tests + build pass |
 
 ## Learnings
 - Supabase/Vercel/GitHub MCP often timeout; prefer linked Supabase CLI and `gh`/`vercel` CLI as fallback
 - Template ID remaps must be gated on `tpl-10` existence for greenfield safety
 - Include file paths + `npx tsc --noEmit` in implementer prompts
 - `vercel env ls` (no `--environment`) works on CLI v54; MCP auth still useful for dashboard tools
+- Treat explicit operator decisions as authoritative when example-email dates conflict with the legal/performance-date policy
+- Normalize timestamp instants before change detection; PostgREST and JavaScript serialize equivalent timestamptz values differently
+- Legacy records with missing contract metadata must require operator confirmation rather than inheriting new defaults during recompute

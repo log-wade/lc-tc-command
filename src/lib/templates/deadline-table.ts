@@ -1,4 +1,9 @@
 import { formatInTimeZone } from "date-fns-tz";
+import {
+  DEFAULT_FINANCING_DAYS,
+  DEFAULT_OPTION_DAYS,
+  DEFAULT_TITLE_COMMITMENT_DAYS,
+} from "../deadlines/engine";
 import type { Deadline } from "../types";
 
 const CT = "America/Chicago";
@@ -11,18 +16,24 @@ export type KeyDateRow = {
   sendToNotes: string;
 };
 
+export type KeyDateTerms = {
+  optionDays?: number;
+  financingDays?: number;
+  titleCommitmentDays?: number;
+  surveyDays?: number;
+};
+
 const TYPE_LABELS: Record<string, string> = {
   option_fee_due: "Option Fee Due",
   earnest_money_due: "Earnest Money Due",
-  option_period_end: "Option Period Ends",
-  loan_application: "Loan Application Due",
-  buyer_approval: "Buyer Approval Deadline",
+  option_period_end: "Option Period Ends (5:00 PM CT)",
+  buyer_approval: "Buyer Financing Approval Notice",
   title_commitment: "Title Commitment Due",
   survey: "Survey Delivery",
   t47_residential: "T-47 Residential Real Property Affidavit",
   hoa_docs: "HOA Documents Delivery",
   closing: "Closing Date",
-  cd_issue: "Closing Disclosure Issue",
+  cd_issue: "Closing Disclosure Issued",
   da_to_title: "DA to Title",
 };
 
@@ -30,33 +41,31 @@ const CLIENT_FACING_TYPES = [
   "option_fee_due",
   "earnest_money_due",
   "option_period_end",
-  "loan_application",
-  "buyer_approval",
-  "title_commitment",
   "survey",
   "t47_residential",
+  "buyer_approval",
+  "title_commitment",
   "hoa_docs",
   "closing",
 ] as const;
 
-function daysLabel(deadlineType: string, optionDays?: number, financingDays?: number): string {
+function daysLabel(
+  deadlineType: string,
+  { optionDays, financingDays, titleCommitmentDays, surveyDays }: KeyDateTerms
+): string {
   switch (deadlineType) {
     case "option_fee_due":
-      return "1 day";
     case "earnest_money_due":
       return "3 days";
     case "option_period_end":
-      return `${optionDays ?? 10} days`;
-    case "loan_application":
-      return "5 days";
+      return `${optionDays ?? DEFAULT_OPTION_DAYS} days`;
     case "buyer_approval":
-      return `${financingDays ?? 21} days`;
+      return `${financingDays ?? DEFAULT_FINANCING_DAYS} days`;
     case "title_commitment":
-      return "20 days";
+      return `${titleCommitmentDays ?? DEFAULT_TITLE_COMMITMENT_DAYS} days`;
     case "survey":
-      return "20 days";
     case "t47_residential":
-      return "With survey / per contract";
+      return surveyDays ? `${surveyDays} days` : "Per contract";
     case "hoa_docs":
       return "15 days";
     case "closing":
@@ -74,15 +83,14 @@ function notesForType(
     case "option_fee_due":
     case "earnest_money_due":
       return titleCompany ? `Send to: ${titleCompany}` : "Send to title / escrow";
-    case "loan_application":
     case "buyer_approval":
       return "Via lender";
     case "title_commitment":
       return titleCompany ? `From: ${titleCompany}` : "From title company";
     case "survey":
-      return "Buyer / surveyor per contract";
+      return "Seller delivers existing survey (or new survey ordered)";
     case "t47_residential":
-      return "Seller delivers with survey (if applicable)";
+      return "Seller delivers with survey";
     case "hoa_docs":
       return "Seller / HOA management";
     case "closing":
@@ -92,20 +100,20 @@ function notesForType(
   }
 }
 
-export function buildKeyDateRows(params: {
-  deadlines: Deadline[];
-  optionDays?: number;
-  financingDays?: number;
-  hasHoa?: boolean;
-  titleCompany?: string;
-}): KeyDateRow[] {
-  const { deadlines, optionDays, financingDays, hasHoa, titleCompany } = params;
+export function buildKeyDateRows(
+  params: KeyDateTerms & {
+    deadlines: Deadline[];
+    hasHoa?: boolean;
+    titleCompany?: string;
+  }
+): KeyDateRow[] {
+  const { deadlines, hasHoa, titleCompany, ...terms } = params;
   const byType = new Map(deadlines.map((d) => [d.deadline_type, d]));
 
   return CLIENT_FACING_TYPES.filter((type) => {
     // Prefer explicit HOA flag; also include if a hoa_docs deadline was computed.
     if (type === "hoa_docs") return Boolean(hasHoa) || byType.has("hoa_docs");
-    return byType.has(type) || type === "t47_residential";
+    return byType.has(type);
   }).map((type) => {
     const d = byType.get(type);
     const dueDate = d
@@ -121,7 +129,7 @@ export function buildKeyDateRows(params: {
     return {
       item: TYPE_LABELS[type] ?? type,
       dueDate,
-      days: daysLabel(type, optionDays, financingDays),
+      days: daysLabel(type, terms),
       completed: d?.status === "met" && d.notes ? d.notes : completed,
       sendToNotes: notesForType(type, titleCompany),
     };

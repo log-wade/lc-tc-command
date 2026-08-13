@@ -18,6 +18,9 @@ export function WeeklyStatsForm({
     feedback_themes?: string;
     cancellations?: string;
     no_shows?: string;
+    reverse_prospecting?: string;
+    online_views?: string;
+    online_saves?: string;
     open_house_details?: string;
   };
 }) {
@@ -79,6 +82,26 @@ export function WeeklyStatsForm({
           name="no_shows"
           type="number"
           defaultValue={initial?.no_shows}
+        />
+        <FormField
+          label="MLS reverse prospecting"
+          name="reverse_prospecting"
+          type="number"
+          defaultValue={initial?.reverse_prospecting}
+          hint="Count from the MLS reverse-prospecting report."
+        />
+        <FormField
+          label="Online views"
+          name="online_views"
+          type="number"
+          defaultValue={initial?.online_views}
+          hint="Combined Zillow, Realtor.com, brokerage portal, and similar views."
+        />
+        <FormField
+          label="Online saves / favorites"
+          name="online_saves"
+          type="number"
+          defaultValue={initial?.online_saves}
         />
         <FormField
           label="Feedback themes"

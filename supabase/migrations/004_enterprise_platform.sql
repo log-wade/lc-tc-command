@@ -20,12 +20,12 @@ CREATE TABLE profiles (
 
 CREATE INDEX idx_profiles_org ON profiles(organization_id);
 
--- Default organization (KW Austin Northwest)
+-- Default organization (Keller Williams Southwest)
 INSERT INTO organizations (id, name, slug, settings)
 VALUES (
   'a0000000-0000-4000-8000-000000000001',
-  'Keller Williams Austin Northwest',
-  'kw-anw',
+  'Keller Williams Southwest',
+  'kw-southwest',
   '{"timezone":"America/Chicago","tuesday_update_hour":15}'::jsonb
 ) ON CONFLICT (slug) DO NOTHING;
 

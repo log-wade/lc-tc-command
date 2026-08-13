@@ -1,15 +1,41 @@
-import { addBusinessDays, addDays, setHours, setMinutes } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import type { Deadline } from "../types";
+import {
+  CENTRAL_TZ,
+  addBusinessDays,
+  addCalendarDays,
+  addContractDays,
+  centralInstant,
+  toCalendarDate,
+  type CalendarDate,
+} from "./calendar";
 
-const CT = "America/Chicago";
+const CT = CENTRAL_TZ;
+
+/** Default contract write-ins when intake does not capture them. */
+export const DEFAULT_OPTION_DAYS = 10;
+export const DEFAULT_FINANCING_DAYS = 21;
+export const DEFAULT_TITLE_COMMITMENT_DAYS = 20;
+export const DEFAULT_SURVEY_DAYS = 5;
+export const DEFAULT_HOA_DAYS = 15;
+
+/** Option fee and earnest money are both due within 3 days of execution. */
+const FUNDS_CONTRACT_DAYS = 3;
+/** TRID: the CD must be issued at least 3 business days before consummation. */
+const CD_BUSINESS_DAYS_BEFORE_CLOSE = 3;
+/** Title needs the disbursement authorization the last business day before closing at the latest. */
+const DA_BUSINESS_DAYS_BEFORE_CLOSE = 1;
 
 export interface TransactionDeadlineInput {
   transactionId: string;
-  effectiveDate: Date;
-  closingDate: Date;
+  /** Contract effective (execution) date as a calendar date, e.g. "2026-08-13". */
+  effectiveDate: string | Date;
+  closingDate: string | Date;
   optionDays: number;
   financingDays: number;
+  titleCommitmentDays?: number;
+  /** Days after execution for survey + T-47 delivery per contract; omit when no survey applies. */
+  surveyDays?: number | null;
   hasHoa?: boolean;
 }
 
@@ -19,82 +45,103 @@ export interface ComputedDeadline {
   due_at: Date;
 }
 
-/** Texas residential standard deadlines from effective date (design doc §5.4) */
+/**
+ * Texas residential deadlines, all pinned to 5:00 PM Central. Performance dates
+ * count forward from the effective date, where the execution day itself is day 0,
+ * and roll to the next open day when they land on a weekend or banking holiday.
+ * The option period end is the exception: it is never extended, because a date
+ * shown later than the true one costs the buyer their right to terminate.
+ */
 export function computeTransactionDeadlines(
   input: TransactionDeadlineInput
 ): ComputedDeadline[] {
-  const { effectiveDate, closingDate, optionDays, financingDays, hasHoa } = input;
-  const eff = effectiveDate;
+  const effective: CalendarDate = toCalendarDate(input.effectiveDate);
+  const closing: CalendarDate = toCalendarDate(input.closingDate);
+  const optionDays = positiveOr(input.optionDays, DEFAULT_OPTION_DAYS);
+  const financingDays = positiveOr(input.financingDays, DEFAULT_FINANCING_DAYS);
+  const titleDays = positiveOr(input.titleCommitmentDays, DEFAULT_TITLE_COMMITMENT_DAYS);
+  const surveyDays =
+    input.surveyDays == null ? null : positiveOr(input.surveyDays, DEFAULT_SURVEY_DAYS);
 
-  const optionEnd = setMinutes(setHours(addDays(eff, optionDays), 17), 0);
+  const fundsDue = addContractDays(effective, FUNDS_CONTRACT_DAYS);
 
   const deadlines: ComputedDeadline[] = [
     {
       deadline_type: "option_fee_due",
-      label: "Option Fee Due (1 day after effective)",
-      due_at: addDays(eff, 1),
+      label: "Option Fee Due (3 days from execution, next business day if closed)",
+      due_at: centralInstant(fundsDue),
     },
     {
       deadline_type: "earnest_money_due",
-      label: "Earnest Money Due (3 days after effective)",
-      due_at: addDays(eff, 3),
+      label: "Earnest Money Due (3 days from execution, next business day if closed)",
+      due_at: centralInstant(fundsDue),
     },
     {
       deadline_type: "option_period_end",
-      label: "Option Period Ends (5:00 PM CT)",
-      due_at: optionEnd,
+      label: `Option Period Ends (${optionDays} days from execution — 5:00 PM CT)`,
+      due_at: centralInstant(addCalendarDays(effective, optionDays)),
     },
+  ];
+
+  if (surveyDays != null) {
+    const surveyDue = addContractDays(effective, surveyDays);
+    deadlines.push(
+      {
+        deadline_type: "survey",
+        label: `Survey Delivery (${surveyDays} days from execution)`,
+        due_at: centralInstant(surveyDue),
+      },
+      {
+        deadline_type: "t47_residential",
+        label: `T-47 Affidavit (with survey — ${surveyDays} days from execution)`,
+        due_at: centralInstant(surveyDue),
+      }
+    );
+  }
+
+  if (input.hasHoa) {
+    deadlines.push({
+      deadline_type: "hoa_docs",
+      label: `HOA Documents Delivery (${DEFAULT_HOA_DAYS} days from execution)`,
+      due_at: centralInstant(addContractDays(effective, DEFAULT_HOA_DAYS)),
+    });
+  }
+
+  deadlines.push(
     {
-      deadline_type: "loan_application",
-      label: "Loan Application Due (per TREC 40-10)",
-      due_at: addDays(eff, 5),
+      deadline_type: "title_commitment",
+      label: `Title Commitment Due (${titleDays} days from execution)`,
+      due_at: centralInstant(addContractDays(effective, titleDays)),
     },
     {
       deadline_type: "buyer_approval",
-      label: "Buyer Approval Notice Deadline",
-      due_at: addDays(eff, financingDays),
-    },
-    {
-      deadline_type: "title_commitment",
-      label: "Title Commitment Due (20 days)",
-      due_at: addDays(eff, 20),
-    },
-    {
-      deadline_type: "survey",
-      label: "Survey Delivery",
-      due_at: addDays(eff, 20),
-    },
-    {
-      deadline_type: "t47_residential",
-      label: "T-47 Residential Real Property Affidavit",
-      due_at: addDays(eff, 20),
+      label: `Buyer Financing Approval Notice (${financingDays} days from execution)`,
+      due_at: centralInstant(addContractDays(effective, financingDays)),
     },
     {
       deadline_type: "cd_issue",
-      label: "Closing Disclosure Issue (3 business days pre-close)",
-      due_at: addBusinessDays(closingDate, -3),
+      label: "Closing Disclosure Issued (3 business days before closing)",
+      due_at: centralInstant(addBusinessDays(closing, -CD_BUSINESS_DAYS_BEFORE_CLOSE)),
+    },
+    {
+      deadline_type: "da_to_title",
+      label: "DA to Title (last business day before closing)",
+      due_at: centralInstant(addBusinessDays(closing, -DA_BUSINESS_DAYS_BEFORE_CLOSE)),
     },
     {
       deadline_type: "closing",
       label: "Closing Date",
-      due_at: setMinutes(setHours(closingDate, 17), 0),
-    },
-    {
-      deadline_type: "da_to_title",
-      label: "DA to Title (day before closing)",
-      due_at: addDays(closingDate, -1),
-    },
-  ];
-
-  if (hasHoa) {
-    deadlines.splice(6, 0, {
-      deadline_type: "hoa_docs",
-      label: "HOA Documents Delivery",
-      due_at: addDays(eff, 15),
-    });
-  }
+      due_at: centralInstant(closing),
+    }
+  );
 
   return deadlines;
+}
+
+function positiveOr(value: number | null | undefined, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.trunc(value)
+    : fallback;
 }
 
 /** End of next business day (Mon–Fri) in America/Chicago for weekend intakes. */

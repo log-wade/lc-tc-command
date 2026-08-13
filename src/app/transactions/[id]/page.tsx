@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTransaction, getDeadlines } from "@/lib/data";
+import { toCalendarDate } from "@/lib/deadlines/calendar";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { DeadlineRow } from "@/components/ui/deadline-row";
 import { ClosingPrepForm } from "@/components/transactions/closing-prep-form";
+import { ContractTermsForm } from "@/components/transactions/contract-terms-form";
+import { RecomputeDeadlinesButton } from "@/components/transactions/recompute-deadlines-button";
 import { WeeklyNotesForm } from "@/components/transactions/weekly-notes-form";
 import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
@@ -56,15 +59,32 @@ export default async function TransactionDetailPage({
             <Row label="Option fee" value={formatCurrency(transaction.option_fee_amount)} />
             <Row label="Earnest money" value={formatCurrency(transaction.earnest_money_amount)} />
             <Row label="Financing days" value={String(transaction.financing_days ?? "—")} />
+            <Row
+              label="Title commitment days"
+              value={String(transaction.metadata?.title_commitment_days ?? "—")}
+            />
+            <Row
+              label="Survey / T-47"
+              value={
+                transaction.metadata?.survey_required === false
+                  ? "Not applicable"
+                  : transaction.metadata?.survey_days
+                    ? `${transaction.metadata.survey_days} days after execution`
+                    : "—"
+              }
+            />
             <Row label="Title file #" value={transaction.title_file_number ?? "—"} />
           </dl>
         </section>
 
         <section className="lg:col-span-3">
-          <h2 className="font-display mb-1 text-lg font-semibold">Deadline timeline</h2>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <h2 className="font-display text-lg font-semibold">Deadline timeline</h2>
+            <RecomputeDeadlinesButton transactionId={transaction.id} />
+          </div>
           <p className="mb-4 text-sm text-ink-muted">
-            Pinned from effective date at intake. Updates only when an executed amendment changes
-            dates.
+            Pinned from the effective date at intake, 5:00 PM CT. Recompute after an executed
+            amendment changes contract terms — met and waived items are preserved.
           </p>
           <div className="space-y-2">
             {sorted.map((d: { id: string; label: string; due_at: string; status: string }) => {
@@ -88,6 +108,26 @@ export default async function TransactionDetailPage({
       </div>
 
       <div className="mt-6 space-y-6">
+        <ContractTermsForm
+          transactionId={transaction.id}
+          initial={{
+            effective_date: transaction.effective_date
+              ? toCalendarDate(transaction.effective_date)
+              : undefined,
+            closing_date: transaction.closing_date
+              ? toCalendarDate(transaction.closing_date)
+              : undefined,
+            option_days: transaction.option_days,
+            financing_days: transaction.financing_days,
+            title_commitment_days: transaction.metadata?.title_commitment_days,
+            survey_required: transaction.metadata?.survey_required,
+            survey_days: transaction.metadata?.survey_days,
+            option_fee_amount: transaction.option_fee_amount,
+            earnest_money_amount: transaction.earnest_money_amount,
+            loan_type: transaction.loan_type,
+            title_file_number: transaction.title_file_number,
+          }}
+        />
         <WeeklyNotesForm
           transactionId={transaction.id}
           initial={{
