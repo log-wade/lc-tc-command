@@ -139,56 +139,6 @@ Thank you,
 {{signature_block}}`,
   },
   {
-    id: "tpl-photoshoot-prep",
-    name: "Photoshoot Confirmation & How to Prepare",
-    when: "Once photography is scheduled — send 1–2 days before the shoot",
-    category: "Listing",
-    requiresReview: true,
-    subject: "Photoshoot Confirmed — {{property_address}} — {{photo_date}}",
-    body: `Hi {{seller_first_name}},
-
-Great news — professional photography for {{property_address}} is confirmed! Photos are one of the biggest drivers of buyer interest, so here's everything you need to have the home camera-ready.
-
-Photoshoot details:
-
-  • Date: {{photo_date}}
-  • Time: {{photo_time}}
-
-Our professional photographer will arrive at the scheduled time. To help your home look its absolute best, here's a quick prep checklist:
-
-  Whole home
-  • Turn on every light and replace any burnt-out bulbs; open blinds and curtains for natural light.
-  • Declutter countertops, floors, and surfaces — less is more on camera.
-  • Put away personal items (family photos, mail, calendars) and any valuables.
-  • Tuck away cords, chargers, remotes, and visible electronics.
-  • Hide trash cans, pet bowls, litter boxes, toys, and crates.
-
-  Kitchen
-  • Clear the counters down to one or two decorative items.
-  • Remove magnets, notes, and photos from the fridge.
-  • Stow dish soap, sponges, and towels.
-
-  Bathrooms
-  • Clear counters; stow toiletries, toothbrushes, and trash cans.
-  • Close toilet lids, hang fresh towels, and remove floor mats.
-
-  Bedrooms
-  • Make the beds with clean, wrinkle-free linens.
-  • Clear nightstands and dressers to a minimum.
-
-  Curb appeal
-  • Mow, trim, and clear the yard of hoses, tools, and toys.
-  • Sweep the walkways and porch; move cars out of the driveway and off the front curb.
-  • Bring trash and recycling bins out of view.
-
-A couple of tips: pets are best kept crated or off-site during the shoot, and please have the home fully ready before the photographer arrives so we can stay on schedule.
-
-If anything comes up or you have questions as you prepare, just reach out — I'm happy to help. Can't wait to see how it turns out!
-
-Carly
-{{signature_block}}`,
-  },
-  {
     id: "tpl-2",
     name: "We Are Live",
     when: "Immediately after MLS publish, or the following morning if approval arrives after business hours",

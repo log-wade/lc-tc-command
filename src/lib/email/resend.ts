@@ -2,8 +2,10 @@ import { Resend } from "resend";
 import { logAudit } from "../audit";
 import { breakLinesOutsideTables } from "../templates/html-draft";
 
-const FROM =
-  process.env.EMAIL_FROM ?? "Carly Bryant <carly@dokindtx.com>";
+// Default to Resend's shared sending domain so outbound mail works before a
+// custom domain (dokindtx.com) is verified. Override with EMAIL_FROM once the
+// domain passes verification in Resend.
+const FROM = process.env.EMAIL_FROM ?? "Do Kind <onboarding@resend.dev>";
 
 export async function sendEmail(params: {
   to: string[];
