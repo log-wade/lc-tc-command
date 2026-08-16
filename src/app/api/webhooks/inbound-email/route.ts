@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isWireRelatedEmail } from "@/lib/ai/agent";
+import { enqueueAiJob } from "@/lib/aiQueue";
 import { createServiceClient } from "@/lib/supabase/server";
 import { DEFAULT_ORG_ID } from "@/lib/supabase/server-auth";
 import { recordFileEvent } from "@/lib/events/file-events";
@@ -41,6 +43,27 @@ export async function POST(request: Request) {
       actorId: "inbound-email",
       payload: { from, subject, messageId },
     });
+
+    // Shadow-mode Spark queue: never block or break the webhook on enqueue failure.
+    const emailPayload = {
+      from,
+      subject,
+      body: text,
+      email_ref: messageId,
+    };
+    enqueueAiJob({
+      jobType: "inbox_triage",
+      payload: emailPayload,
+    }).catch((e) => console.error("ai_jobs enqueue failed", e));
+
+    if (isWireRelatedEmail(subject, text)) {
+      enqueueAiJob({
+        jobType: "wire_fraud_scan",
+        payload: emailPayload,
+        priority: 0,
+        fallbackMinutes: 3,
+      }).catch((e) => console.error("ai_jobs enqueue failed", e));
+    }
 
     return NextResponse.json({ ok: true, messageId });
   } catch (e) {

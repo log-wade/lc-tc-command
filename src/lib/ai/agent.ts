@@ -19,15 +19,19 @@ export interface EmailClassification {
   wire_fraud_signal: boolean;
 }
 
+/** Pre-filter matching wire/payment language (same keywords as P0 short-circuit). */
+export function isWireRelatedEmail(subject: string, body: string): boolean {
+  const wireKeywords = /wire|routing|account number|changed instructions|updated wiring/i;
+  return wireKeywords.test(subject) || wireKeywords.test(body);
+}
+
 export async function classifyInboundEmail(payload: {
   from: string;
   subject: string;
   body: string;
 }): Promise<EmailClassification> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const wireKeywords = /wire|routing|account number|changed instructions|updated wiring/i;
-  const wireSignal =
-    wireKeywords.test(payload.subject) || wireKeywords.test(payload.body);
+  const wireSignal = isWireRelatedEmail(payload.subject, payload.body);
 
   if (wireSignal) {
     return {
@@ -52,7 +56,7 @@ export async function classifyInboundEmail(payload: {
 
   const client = new Anthropic({ apiKey });
   const response = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
+    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5-20250929",
     max_tokens: 512,
     system: SYSTEM_PROMPT,
     messages: [
@@ -98,7 +102,7 @@ export async function draftClientResponse(params: {
 
   const client = new Anthropic({ apiKey });
   const response = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
+    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5-20250929",
     max_tokens: 1024,
     system: SYSTEM_PROMPT,
     messages: [
@@ -121,7 +125,7 @@ export async function summarizeFeedback(feedbackItems: string[]): Promise<string
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const response = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
+    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5-20250929",
     max_tokens: 512,
     system: SYSTEM_PROMPT,
     messages: [

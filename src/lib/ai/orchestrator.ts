@@ -12,7 +12,7 @@ import { getSessionProfile } from "../supabase/server-auth";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-const DEFAULT_MODEL = "claude-sonnet-4-20250514";
+const DEFAULT_MODEL = "claude-sonnet-4-5-20250929";
 
 /** Anthropic requires the first message to be from the user. */
 function normalizeForAnthropic(messages: ChatMessage[]): Anthropic.MessageParam[] {
