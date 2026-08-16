@@ -48,9 +48,16 @@ export interface ComputedDeadline {
 /**
  * Texas residential deadlines, all pinned to 5:00 PM Central. Performance dates
  * count forward from the effective date, where the execution day itself is day 0,
- * and roll to the next open day when they land on a weekend or banking holiday.
- * The option period end is the exception: it is never extended, because a date
- * shown later than the true one costs the buyer their right to terminate.
+ * and most roll to the next open day when they land on a weekend or banking holiday
+ * (TREC ¶5A for option fee / earnest money delivery).
+ *
+ * Two notice deadlines never roll — they end on their calendar day even on a
+ * weekend or holiday, and ¶5E makes time of the essence with no grace:
+ * - Option period end (¶5B)
+ * - Buyer financing approval notice (Third Party Financing Addendum ¶2B)
+ *
+ * Showing either one day late would quietly extend a hard buyer termination /
+ * notice right past the true deadline.
  */
 export function computeTransactionDeadlines(
   input: TransactionDeadlineInput
@@ -115,8 +122,8 @@ export function computeTransactionDeadlines(
     },
     {
       deadline_type: "buyer_approval",
-      label: `Buyer Financing Approval Notice (${financingDays} days from execution)`,
-      due_at: centralInstant(addContractDays(effective, financingDays)),
+      label: `Buyer Financing Approval Notice (${financingDays} days from execution — calendar days, no extension)`,
+      due_at: centralInstant(addCalendarDays(effective, financingDays)),
     },
     {
       deadline_type: "cd_issue",
