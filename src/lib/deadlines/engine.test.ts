@@ -77,6 +77,13 @@ describe("computeTransactionDeadlines", () => {
     assert.equal(ctDate(map.get("option_period_end")!.due_at), "2026-08-15");
   });
 
+  it("never extends financing approval notice past its calendar day", () => {
+    // Third Party Financing Addendum ¶2B is time of the essence — same strict
+    // calendar-day rule as the option period. Thu Aug 13 + 17 lands on Sun Aug 30.
+    const map = byType({ ...contract, financingDays: 17 });
+    assert.equal(ctDate(map.get("buyer_approval")!.due_at), "2026-08-30");
+  });
+
   it("never emits a loan application deadline", () => {
     assert.equal(byType().has("loan_application"), false);
   });
