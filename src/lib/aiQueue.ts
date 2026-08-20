@@ -9,12 +9,7 @@
 // - Inbox triage: enqueue with a fallback deadline. A cron sweeps jobs the
 //   Spark didn't pick up in time and routes them to the API.
 
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceClient } from "@/lib/supabase/server";
 
 export type AiJobType =
   | "inbox_triage"
@@ -30,6 +25,11 @@ export async function enqueueAiJob(opts: {
   priority?: number;          // 0 = P0
   fallbackMinutes?: number;   // API takeover deadline; default 10
 }) {
+  const supabase = createServiceClient();
+  if (!supabase) {
+    throw new Error("Database is not configured");
+  }
+
   const { data, error } = await supabase
     .from("ai_jobs")
     .insert({
@@ -56,6 +56,11 @@ export async function enqueueAiJob(opts: {
 export async function sweepFallbacks(
   runViaApi: (jobType: AiJobType, payload: any) => Promise<any>
 ) {
+  const supabase = createServiceClient();
+  if (!supabase) {
+    throw new Error("Database is not configured");
+  }
+
   await supabase.rpc("reclaim_stale_ai_jobs", { stale_minutes: 15 });
 
   const { data: expired } = await supabase
