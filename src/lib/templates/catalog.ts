@@ -17,6 +17,23 @@ const LEGACY_TEMPLATE_IDS: Record<string, string> = {
   "tpl-10": "tpl-9",
 };
 
+/** Inserted into tpl-listing-docs when the listing triggers Austin ECAD. */
+export const ECAD_REQUEST_BULLET =
+  "  • ECAD energy audit: Because this property is within Austin city limits, receives Austin Energy service, and is at least 10 years old, the City of Austin's ECAD ordinance requires an energy audit before the property is sold. Schedule with Austin Auditors at https://austinauditors.com/book/. Pricing is typically about $159 and up. The report does not need to delay go-live, but it must be completed and disclosed before the resale contract is executed. Send appointment details once scheduled, and forward the completed report when you receive it.\n";
+
+export function listingDocsEcadVars(ecadRequired: boolean): {
+  ecad_request: string;
+  ecad_reply_ask: string;
+} {
+  if (!ecadRequired) {
+    return { ecad_request: "", ecad_reply_ask: "" };
+  }
+  return {
+    ecad_request: ECAD_REQUEST_BULLET,
+    ecad_reply_ask: ", ECAD appointment details,",
+  };
+}
+
 export const EMAIL_TEMPLATES: EmailTemplate[] = [
   {
     id: "tpl-1",
@@ -47,8 +64,8 @@ Thank you,
   },
   {
     id: "tpl-listing-docs",
-    name: "Listing Documents Needed / Survey & T-47",
-    when: "At listing intake, after the welcome email",
+    name: "Listing Documents Needed / Survey, T-47 & ECAD",
+    when: "At listing intake, after the welcome email. Includes ECAD when the property triggers the ordinance",
     category: "Listing",
     requiresReview: true,
     subject: "Documents Needed for {{property_address}}",
@@ -58,11 +75,11 @@ As we prepare {{property_address}} for the market, here are the documents and it
 
   • Current survey: Please reply with a clear PDF copy if you have one.
   • T-47 affidavit: If you have a current survey, complete the T-47 using the survey and acquisition date, list any changes to the property (or write NONE), then sign it in wet ink before a notary. The T-47 cannot be electronically signed. If you need a blank form or help finding a notary, let me know.
-  • Listing documents: Watch for the Lone Wolf e-sign packet, which may include the Listing Agreement, Information About Brokerage Services, General Notice, Warning Regarding Wire Fraud, and Seller Net Sheet.
+{{ecad_request}}  • Listing documents: Watch for the Lone Wolf e-sign packet, which may include the Listing Agreement, Information About Brokerage Services, General Notice, Warning Regarding Wire Fraud, and Seller Net Sheet.
   • Seller's Disclosure Notice: Please complete the Sellers Shield questionnaire we send. The optional paid legal-protection upgrade is not required unless you want it.
   • Spare key: Please have a working spare key ready for the lockbox before photography.
 
-Reply here with the survey or any questions. I’m happy to walk you through the T-47 before it is notarized.
+Reply here with the survey{{ecad_reply_ask}} or any questions. I’m happy to walk you through the T-47 before it is notarized.
 
 Thank you,
 {{signature_block}}`,
@@ -70,7 +87,7 @@ Thank you,
   {
     id: "tpl-ecad-needed",
     name: "ECAD Audit Needed",
-    when: "At intake when the property is in Austin city limits, served by Austin Energy, and at least 10 years old",
+    when: "When ECAD is discovered after intake (the documents-needed email already covers ECAD at intake)",
     category: "Listing",
     requiresReview: true,
     subject: "ECAD Energy Audit Needed for {{property_address}}",

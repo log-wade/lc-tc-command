@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import type { ProblemReportMessage, ProblemReportPlan } from "./types";
 
-const DEFAULT_MODEL = "claude-sonnet-4-20250514";
+const DEFAULT_MODEL = "claude-sonnet-4-5-20250929";
 
 const analysisSchema = z.object({
   resultType: z.enum(["question", "plan"]),

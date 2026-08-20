@@ -23,6 +23,10 @@
     {
       "path": "/api/cron/problem-reports",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/ai-fallback",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -1,0 +1,21 @@
+# /etc/systemd/system/lctc-worker.service
+# sudo systemctl daemon-reload && sudo systemctl enable --now lctc-worker
+
+[Unit]
+Description=LC/TC Command Spark worker (Supabase job queue poller)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=log-wade
+EnvironmentFile=/etc/lctc-worker.env
+ExecStart=/usr/bin/python3 /opt/lctc/worker.py
+Restart=always
+RestartSec=10
+# don't let a runaway batch starve the voice stack if they share a node
+MemoryMax=8G
+Nice=10
+
+[Install]
+WantedBy=multi-user.target
