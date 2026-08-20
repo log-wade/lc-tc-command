@@ -221,6 +221,13 @@ export const memoryStore = {
     }
     return r;
   },
+  getReview: (id: string) => reviews.find((x) => x.id === id),
+  updateReviewPayload: (id: string, payload: Record<string, unknown>) => {
+    const r = reviews.find((x) => x.id === id);
+    if (!r) return undefined;
+    r.payload = payload;
+    return r;
+  },
 
   auditLogs: () => [...auditLogs].reverse(),
   logAudit: (entry: Record<string, unknown>) => {

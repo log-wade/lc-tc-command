@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getReviewQueue } from "@/lib/data";
-import { getTemplateById, resolveTemplateId } from "@/lib/templates/catalog";
+import { resolveTemplateId } from "@/lib/templates/catalog";
+import { loadRuntimeTemplate } from "@/lib/templates/runtime";
+import { parseEmailAttachments } from "@/lib/templates/attachments";
 import { fillTemplate } from "@/lib/templates/signature";
 import { buildEmailContext } from "@/lib/templates/build-context";
 import { parseDraftBlocks } from "@/lib/templates/html-draft";
@@ -20,7 +22,7 @@ export default async function ReviewsPage() {
       const templateId = payload.template_id
         ? resolveTemplateId(String(payload.template_id))
         : undefined;
-      const template = templateId ? getTemplateById(templateId) : undefined;
+      const template = templateId ? await loadRuntimeTemplate(templateId) : undefined;
       const fileType = r.file_type as string | undefined;
       const fileId = r.file_id != null ? String(r.file_id) : undefined;
 
@@ -44,6 +46,8 @@ export default async function ReviewsPage() {
         draftSubject,
         draftBody,
         skippable: payload.skippable === true || templateId === "tpl-6",
+        templateAttachments: template?.attachments ?? [],
+        reviewAttachments: parseEmailAttachments(payload.attachments),
       };
     })
   );
@@ -86,6 +90,14 @@ export default async function ReviewsPage() {
                       {r.template.id} · {r.template.name}
                     </p>
                   )}
+                  {(r.templateAttachments.length > 0 || r.reviewAttachments.length > 0) && (
+                    <p className="mt-1 text-xs text-ink-muted">
+                      Attachments:{" "}
+                      {[...r.templateAttachments, ...r.reviewAttachments]
+                        .map((file) => file.filename)
+                        .join(", ")}
+                    </p>
+                  )}
                   {r.file_id != null && (
                     <p className="mt-1 text-xs text-ink-muted">
                       <Link
@@ -106,6 +118,8 @@ export default async function ReviewsPage() {
                   skippable={r.skippable}
                   draftSubject={r.draftSubject}
                   draftBody={r.draftBody}
+                  templateAttachments={r.templateAttachments}
+                  reviewAttachments={r.reviewAttachments}
                 />
               </div>
 

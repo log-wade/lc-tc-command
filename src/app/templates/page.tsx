@@ -7,7 +7,7 @@ export default function TemplatesPage() {
       <PageHeader
         eyebrow="Communications"
         title="Email templates"
-        description="Broker-approved library. Click any template to preview subject and body. Every send is logged; anything off-template needs your review first."
+        description="Broker-approved library. Open a template to revise copy, attach files, and save. Every send is still reviewed before it goes out."
       />
 
       <TemplateLibrary />

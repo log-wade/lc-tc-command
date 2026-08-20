@@ -16,8 +16,14 @@ export async function sendEmail(params: {
   fileType?: string;
   fileId?: string;
   templateId?: string;
+  attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
 }): Promise<{ sent: boolean; id?: string; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
+  const attachmentMeta = (params.attachments ?? []).map((file) => ({
+    filename: file.filename,
+    contentType: file.contentType,
+    size: file.content.length,
+  }));
 
   if (!apiKey) {
     await logAudit({
@@ -25,7 +31,7 @@ export async function sendEmail(params: {
       file_type: params.fileType,
       file_id: params.fileId,
       action_type: "email_send_simulated",
-      inputs: { to: params.to, subject: params.subject },
+      inputs: { to: params.to, subject: params.subject, attachments: attachmentMeta },
       outputs: { mode: "demo", body_preview: params.body.slice(0, 200) },
       outcome: "success",
     });
@@ -37,6 +43,14 @@ export async function sendEmail(params: {
     const hasHtmlTags = /<\/?(?:table|tr|td|th|p|br|a)\b/i.test(params.html ?? params.body);
     const htmlSource = params.html ?? (hasHtmlTags ? params.body : undefined);
     const html = htmlSource ? breakLinesOutsideTables(htmlSource) : undefined;
+    const attachments =
+      params.attachments && params.attachments.length > 0
+        ? params.attachments.map((file) => ({
+            filename: file.filename,
+            content: file.content,
+            contentType: file.contentType,
+          }))
+        : undefined;
 
     const { data, error } = await resend.emails.send({
       from: FROM,
@@ -45,6 +59,7 @@ export async function sendEmail(params: {
       subject: params.subject,
       text: params.body,
       ...(html ? { html } : {}),
+      ...(attachments ? { attachments } : {}),
     });
 
     if (error) {
@@ -68,6 +83,7 @@ export async function sendEmail(params: {
         cc: params.cc,
         subject: params.subject,
         templateId: params.templateId,
+        attachments: attachmentMeta,
       },
       outputs: { messageId: data?.id },
       outcome: "success",

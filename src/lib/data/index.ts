@@ -2,6 +2,13 @@ import { createServiceClient, isDatabaseConfigured, useMemoryStore } from "../su
 import { fromZonedTime } from "date-fns-tz";
 import { DEFAULT_ORG_ID, resolveAgentId } from "../supabase/server-auth";
 import { getTemplateById, resolveTemplateId } from "../templates/catalog";
+import {
+  mergeEmailAttachments,
+  parseEmailAttachments,
+  type EmailAttachment,
+} from "../templates/attachments";
+import { loadRuntimeTemplate } from "../templates/runtime";
+import { loadAttachmentContents } from "../email/load-attachments";
 import { fillTemplate } from "../templates/signature";
 import { buildEmailContext } from "../templates/build-context";
 import { htmlDraftToPlainText } from "../templates/html-draft";
@@ -183,6 +190,58 @@ export async function getReviewQueue() {
     }
   }
   return memoryStore.reviews().sort(compareReviewQueue);
+}
+
+export async function getReviewItem(reviewId: string): Promise<Record<string, unknown> | null> {
+  if (!useMemoryStore() && isDatabaseConfigured()) {
+    const supabase = createServiceClient();
+    if (supabase) {
+      const { data } = await supabase.from("review_queue").select("*").eq("id", reviewId).single();
+      return (data as Record<string, unknown> | null) ?? null;
+    }
+  }
+  return memoryStore.getReview(reviewId) ?? null;
+}
+
+export async function saveReviewRevision(
+  reviewId: string,
+  revision: {
+    subject?: string;
+    body?: string;
+    attachments?: EmailAttachment[];
+  }
+): Promise<Record<string, unknown>> {
+  const review = await getReviewItem(reviewId);
+  if (!review) throw new Error("Review item not found");
+  if (review.status && review.status !== "pending") {
+    throw new Error("Only pending review items can be revised");
+  }
+
+  const currentPayload = (review.payload as Record<string, unknown>) ?? {};
+  const payload = {
+    ...currentPayload,
+    ...(typeof revision.subject === "string" ? { draft_subject: revision.subject } : {}),
+    ...(typeof revision.body === "string" ? { draft: revision.body } : {}),
+    ...(revision.attachments ? { attachments: revision.attachments } : {}),
+  };
+
+  if (!useMemoryStore() && isDatabaseConfigured()) {
+    const supabase = createServiceClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("review_queue")
+        .update({ payload })
+        .eq("id", reviewId)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return data as Record<string, unknown>;
+    }
+  }
+
+  const updated = memoryStore.updateReviewPayload(reviewId, payload);
+  if (!updated) throw new Error("Review item not found");
+  return updated;
 }
 
 export async function getAuditLogs(limit = 50) {
@@ -1159,7 +1218,7 @@ export async function resolveReview(
 
   if (approved && reviewPayload?.template_id) {
     const templateId = resolveTemplateId(String(reviewPayload.template_id));
-    const template = getTemplateById(templateId);
+    const template = (await loadRuntimeTemplate(templateId)) ?? getTemplateById(templateId);
     if (!template) {
       await logAudit({
         actor_type: "system",
@@ -1209,6 +1268,11 @@ export async function resolveReview(
         const textBody = authoredBody
           ? htmlDraftToPlainText(authoredBody)
           : fillTemplate(template.body, textCtx);
+        const attachments = mergeEmailAttachments(
+          "attachments" in template ? parseEmailAttachments(template.attachments) : [],
+          parseEmailAttachments(reviewPayload.attachments)
+        );
+        const files = await loadAttachmentContents(attachments);
         await sendEmail({
           to: recipients.to,
           cc: recipients.cc.length > 0 ? recipients.cc : undefined,
@@ -1218,6 +1282,7 @@ export async function resolveReview(
           fileType,
           fileId,
           templateId: template.id,
+          attachments: files,
         });
         if (recipients.usedAlertFallback) {
           await logAudit({
