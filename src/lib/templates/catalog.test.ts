@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { EMAIL_TEMPLATES, getTemplateById } from "./catalog";
+import { EMAIL_TEMPLATES, getTemplateById, listingDocsEcadVars } from "./catalog";
 import { fillTemplate, SIGNATURE_BLOCK } from "./signature";
 
 const FORBIDDEN_PLACEHOLDERS = [
@@ -76,13 +76,27 @@ describe("EMAIL_TEMPLATES catalog", () => {
     assert.equal(tpl5.subject.includes("Intro emails to lender"), false);
   });
 
-  it("listing documents template gives accurate survey and T-47 instructions", () => {
+  it("listing documents template gives accurate survey and T-47 instructions and folds in ECAD when required", () => {
     const template = getTemplateById("tpl-listing-docs");
     assert.ok(template);
     assert.match(template.body, /wet ink/i);
     assert.match(template.body, /notary/i);
     assert.match(template.body, /cannot be electronically signed/i);
     assert.match(template.body, /Sellers Shield/);
+    assert.match(template.body, /\{\{ecad_request\}\}/);
+
+    const withoutEcad = fillTemplate(template.body, listingDocsEcadVars(false));
+    assert.equal(withoutEcad.includes("ECAD"), false);
+    assert.equal(withoutEcad.includes("austinauditors.com"), false);
+
+    const withEcad = fillTemplate(template.body, listingDocsEcadVars(true));
+    assert.match(withEcad, /ECAD energy audit/);
+    assert.match(withEcad, /Austin city limits/i);
+    assert.match(withEcad, /Austin Energy/i);
+    assert.match(withEcad, /at least 10 years old/i);
+    assert.match(withEcad, /austinauditors\.com\/book/);
+    assert.match(withEcad, /before the resale contract is executed/i);
+    assert.match(withEcad, /ECAD appointment details/);
   });
 
   it("ECAD template explains the trigger, timing, and booking path", () => {

@@ -3,6 +3,7 @@ import { centralInstant, toCalendarDate } from "../deadlines/calendar";
 import { memoryStore } from "../store/memory-store";
 import { createServiceClient, isDatabaseConfigured, useMemoryStore } from "../supabase/server";
 import type { Deadline, Listing, Transaction } from "../types";
+import { listingDocsEcadVars } from "./catalog";
 import {
   buildKeyDateRows,
   renderKeyDatesTableHtml,
@@ -36,6 +37,7 @@ type FileMeta = {
   photo_time?: string;
   seller_first_name?: string;
   seller_preferred_name?: string;
+  ecad_required?: boolean;
   client_first_name?: string;
   has_hoa?: boolean;
   review_link?: string;
@@ -176,6 +178,7 @@ export async function buildListingEmailContext(listing: Listing): Promise<EmailC
     photo_date: meta.photo_date || "To be confirmed",
     photo_time: meta.photo_time || "To be confirmed",
     review_link: meta.review_link || "https://g.page/r/review",
+    ...listingDocsEcadVars(meta.ecad_required === true),
   };
 }
 

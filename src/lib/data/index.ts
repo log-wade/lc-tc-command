@@ -154,6 +154,21 @@ export async function getDeadlines(fileType?: string, fileId?: string) {
   return memoryStore.deadlines(fileType, fileId);
 }
 
+/**
+ * Mirrors the Supabase order clause below so the memory store and the database agree.
+ * Queue order is urgency first, then the order items were created. Items queued as a
+ * batch during intake depend on the created_at tiebreak to stay in their intended
+ * send order, so this must stay ascending. Keep both in sync.
+ */
+function compareReviewQueue(
+  a: Record<string, unknown>,
+  b: Record<string, unknown>
+): number {
+  const priority = String(a.priority ?? "P2").localeCompare(String(b.priority ?? "P2"));
+  if (priority !== 0) return priority;
+  return String(a.created_at ?? "").localeCompare(String(b.created_at ?? ""));
+}
+
 export async function getReviewQueue() {
   if (!useMemoryStore() && isDatabaseConfigured()) {
     const supabase = createServiceClient();
@@ -162,11 +177,12 @@ export async function getReviewQueue() {
         .from("review_queue")
         .select("*")
         .eq("status", "pending")
-        .order("created_at", { ascending: false });
+        .order("priority", { ascending: true })
+        .order("created_at", { ascending: true });
       return data ?? [];
     }
   }
-  return memoryStore.reviews();
+  return memoryStore.reviews().sort(compareReviewQueue);
 }
 
 export async function getAuditLogs(limit = 50) {
@@ -373,7 +389,7 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     file_type: "listing",
     file_id: listing.id,
     item_type: "communication",
-    priority: "P2",
+    priority: "P1",
     title: `Send Template 1 — Intro email for ${listing.property_address}`,
     payload: { template_id: "tpl-1", listing_id: listing.id },
     due_by: introEmailDueBy().toISOString(),
@@ -383,23 +399,11 @@ export async function createListingIntake(payload: Record<string, unknown>): Pro
     file_type: "listing",
     file_id: listing.id,
     item_type: "communication",
-    priority: "P1",
-    title: `Send listing documents / Survey & T-47 request for ${listing.property_address}`,
+    priority: "P2",
+    title: `Send listing documents / Survey, T-47${ecadRequired ? " & ECAD" : ""} request for ${listing.property_address}`,
     payload: { template_id: "tpl-listing-docs", listing_id: listing.id },
     due_by: introEmailDueBy().toISOString(),
   });
-
-  if (ecadRequired) {
-    await queueReview({
-      file_type: "listing",
-      file_id: listing.id,
-      item_type: "communication",
-      priority: "P1",
-      title: `Send ECAD audit notice for ${listing.property_address}`,
-      payload: { template_id: "tpl-ecad-needed", listing_id: listing.id },
-      due_by: introEmailDueBy().toISOString(),
-    });
-  }
 
   if (photoSessionAt) {
     const session = new Date(photoSessionAt);

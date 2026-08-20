@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/templates/catalog.test.ts src/lib/templates/html-draft.test.ts src/lib/email/recipients.test.ts src/lib/deadlines/engine.test.ts src/lib/listings/ecad.test.ts src/lib/problem-reports/repository.test.ts",
+    "test": "tsx --test src/lib/templates/catalog.test.ts src/lib/templates/html-draft.test.ts src/lib/email/recipients.test.ts src/lib/deadlines/engine.test.ts src/lib/listings/ecad.test.ts src/lib/problem-reports/repository.test.ts src/lib/data/review-queue-order.test.ts",
     "agent:setup": "node scripts/setup-elevenlabs-agent.mjs",
     "seed:admin": "node scripts/seed-admin-user.mjs"
   },

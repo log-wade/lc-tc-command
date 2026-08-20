@@ -66,7 +66,11 @@ export default async function ListingDetailPage({
             <DetailRow label="Year built" value={listing.year_built ? String(listing.year_built) : "—"} />
             <DetailRow
               label="ECAD"
-              value={listing.metadata?.ecad_required ? "Required — audit notice queued" : "Not required"}
+              value={
+                listing.metadata?.ecad_required
+                  ? "Required — included in the documents-needed email"
+                  : "Not required"
+              }
             />
             <DetailRow
               label="Survey / T-47"
