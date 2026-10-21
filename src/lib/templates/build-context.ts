@@ -37,6 +37,8 @@ type FileMeta = {
   photo_time?: string;
   seller_first_name?: string;
   seller_preferred_name?: string;
+  agent_first_name?: string;
+  agent_full_name?: string;
   ecad_required?: boolean;
   client_first_name?: string;
   has_hoa?: boolean;
@@ -129,7 +131,14 @@ async function loadDeadlines(fileType: string, fileId: string): Promise<Deadline
 
 export async function buildListingEmailContext(listing: Listing): Promise<EmailContext> {
   const meta = asMeta((listing as Listing & { metadata?: unknown }).metadata);
-  const agent = await getAgentName(listing.listing_agent_id);
+  const namedAgent = await getAgentName(listing.listing_agent_id);
+  const agent =
+    namedAgent.first === "your agent" && meta.agent_first_name
+      ? {
+          first: meta.agent_first_name,
+          full: meta.agent_full_name || meta.agent_first_name,
+        }
+      : namedAgent;
   const sellerFirst =
     meta.seller_preferred_name ||
     meta.seller_first_name ||

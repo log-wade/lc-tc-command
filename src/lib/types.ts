@@ -44,6 +44,33 @@ export interface ListingWeeklyStats {
   online_saves?: string | number;
 }
 
+export interface ListingSellerContact {
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+export interface ListingCoordination {
+  occupancy?: string;
+  agreement_signed?: string;
+  term_start?: string;
+  term_end?: string;
+  commission_percent?: number;
+  mls_board?: string;
+  property_type?: string;
+  concessions?: string;
+  photo_plan?: string;
+  photographer_note?: string;
+  renovation_note?: string;
+  disclosure_note?: string;
+  lead_based_paint?: string;
+  district_notice?: string;
+  mailing_address?: string;
+  target_list_note?: string;
+  still_needed?: string[];
+  open_questions?: string[];
+}
+
 export interface ListingMetadata {
   weekly_stats?: ListingWeeklyStats;
   showing_restrictions?: string;
@@ -53,7 +80,14 @@ export interface ListingMetadata {
   seller_preferred_name?: string;
   seller_legal_name?: string;
   seller_email?: string;
+  seller_emails?: string[];
   seller_phone?: string;
+  co_seller_name?: string;
+  co_seller_email?: string;
+  co_seller_phone?: string;
+  agent_first_name?: string;
+  sellers?: ListingSellerContact[];
+  coordination?: ListingCoordination;
   ecad_required?: boolean;
   in_austin_city_limits?: boolean;
   austin_energy_service?: boolean;

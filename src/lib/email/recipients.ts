@@ -36,6 +36,22 @@ function uniqueEmails(emails: Array<string | undefined>): string[] {
   return out;
 }
 
+/** Split comma- or semicolon-separated addresses and drop duplicates. */
+export function collectEmailList(
+  ...values: Array<string | readonly string[] | null | undefined>
+): string[] {
+  const parts: string[] = [];
+  for (const value of values) {
+    if (!value) continue;
+    const items = typeof value === "string" ? [value] : value;
+    for (const item of items) {
+      if (typeof item !== "string") continue;
+      parts.push(...item.split(/[,;]+/));
+    }
+  }
+  return uniqueEmails(parts);
+}
+
 /**
  * Pick To/CC for an approved template send.
  * Client-facing mail goes to the seller/client (or title/lender for tpl-6);
@@ -43,7 +59,7 @@ function uniqueEmails(emails: Array<string | undefined>): string[] {
  */
 export function resolveSendRecipients(input: RecipientInputs): ResolvedRecipients {
   const alert = normalizeEmail(input.alertEmail);
-  const seller = normalizeEmail(input.sellerEmail);
+  const sellers = collectEmailList(input.sellerEmail);
   const client = normalizeEmail(input.clientEmail);
   const thirdParty = normalizeEmail(input.thirdPartyEmail);
   const agent = normalizeEmail(input.agentEmail);
@@ -71,7 +87,7 @@ export function resolveSendRecipients(input: RecipientInputs): ResolvedRecipient
       return alertOnly("agent email missing for internal template");
     }
     case "Listing": {
-      if (seller) return withAlertCc([seller]);
+      if (sellers.length > 0) return withAlertCc(sellers);
       return alertOnly("seller_email missing on listing");
     }
     case "Transaction": {
