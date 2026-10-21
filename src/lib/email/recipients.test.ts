@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { getTemplateById } from "../templates/catalog";
-import { resolveSendRecipients } from "./recipients";
+import { collectEmailList, resolveSendRecipients } from "./recipients";
 
 const listingTpl = getTemplateById("tpl-1")!;
 const internalTpl = getTemplateById("tpl-4")!;
@@ -18,6 +18,27 @@ describe("resolveSendRecipients", () => {
     assert.deepEqual(result.to, ["seller@example.com"]);
     assert.deepEqual(result.cc, ["carly@dokindtx.com"]);
     assert.equal(result.usedAlertFallback, false);
+  });
+
+  it("sends listing templates to every seller address", () => {
+    const result = resolveSendRecipients({
+      template: listingTpl,
+      sellerEmail: "Bailey@Example.com, colleen@example.com",
+      alertEmail: "carly@dokindtx.com",
+    });
+    assert.deepEqual(result.to, ["bailey@example.com", "colleen@example.com"]);
+    assert.deepEqual(result.cc, ["carly@dokindtx.com"]);
+    assert.equal(result.usedAlertFallback, false);
+  });
+
+  it("collects seller addresses from the primary field and the extra list", () => {
+    assert.deepEqual(
+      collectEmailList("bailey@example.com", [
+        "Bailey@Example.com",
+        "colleen@example.com",
+      ]),
+      ["bailey@example.com", "colleen@example.com"]
+    );
   });
 
   it("falls back to alert when seller email is missing", () => {

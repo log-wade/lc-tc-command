@@ -8,7 +8,11 @@ import { GoLiveButton } from "@/components/listings/go-live-button";
 import { ListingPreparationForm } from "@/components/listings/listing-preparation-form";
 import { WeeklyStatsForm } from "@/components/listings/weekly-stats-form";
 import { formatCurrency, formatDate, statusColor } from "@/lib/utils";
-import type { ListingWeeklyStats } from "@/lib/types";
+import type {
+  ListingCoordination,
+  ListingSellerContact,
+  ListingWeeklyStats,
+} from "@/lib/types";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +34,8 @@ export default async function ListingDetailPage({
     (typeof listing.metadata?.open_house_details === "string"
       ? listing.metadata.open_house_details
       : undefined);
+  const sellers = readSellers(listing.metadata);
+  const coordination = listing.metadata?.coordination;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
@@ -124,6 +130,28 @@ export default async function ListingDetailPage({
         </section>
       </div>
 
+      {(sellers.length > 0 || coordination) && (
+        <section className="mt-6 rounded-2xl border border-border bg-surface-card p-6 shadow-sm">
+          <h2 className="font-display text-lg font-semibold">Sellers & coordination</h2>
+          {sellers.length > 0 && (
+            <ul className="mt-4 space-y-3 text-sm">
+              {sellers.map((seller) => (
+                <li key={`${seller.email}-${seller.name}`} className="border-b border-border pb-3 last:border-0">
+                  <p className="font-medium text-ink">{seller.name}</p>
+                  <p className="text-ink-muted">
+                    <a className="hover:text-brand-coral" href={`mailto:${seller.email}`}>
+                      {seller.email}
+                    </a>
+                    {seller.phone ? ` · ${seller.phone}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          {coordination && <CoordinationFacts coordination={coordination} />}
+        </section>
+      )}
+
       <div className="mt-6 space-y-6">
         <ListingPreparationForm
           listingId={listing.id}
@@ -173,6 +201,106 @@ function DetailRow({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4 border-b border-border pb-2 last:border-0">
       <dt className="text-ink-muted">{label}</dt>
       <dd className="font-medium capitalize text-ink">{value}</dd>
+    </div>
+  );
+}
+
+function readSellers(
+  metadata: { sellers?: ListingSellerContact[]; seller_legal_name?: string; seller_email?: string; seller_phone?: string } | undefined
+): ListingSellerContact[] {
+  const listed = metadata?.sellers?.filter(
+    (seller) => seller && typeof seller.name === "string" && typeof seller.email === "string"
+  );
+  if (listed && listed.length > 0) return listed;
+  if (metadata?.seller_email && metadata.seller_legal_name) {
+    return [
+      {
+        name: metadata.seller_legal_name,
+        email: metadata.seller_email,
+        phone: metadata.seller_phone,
+      },
+    ];
+  }
+  return [];
+}
+
+function CoordinationFacts({ coordination }: { coordination: ListingCoordination }) {
+  const term =
+    coordination.term_start || coordination.term_end
+      ? `${formatDate(coordination.term_start)} – ${formatDate(coordination.term_end)}`
+      : undefined;
+  const facts: Array<{ label: string; value: string }> = [
+    coordination.occupancy ? { label: "Occupancy", value: coordination.occupancy } : undefined,
+    coordination.agreement_signed
+      ? { label: "Agreement signed", value: formatDate(coordination.agreement_signed) }
+      : undefined,
+    term ? { label: "Listing term", value: term } : undefined,
+    coordination.commission_percent
+      ? { label: "Commission", value: `${coordination.commission_percent}%` }
+      : undefined,
+    coordination.mls_board ? { label: "MLS", value: coordination.mls_board } : undefined,
+    coordination.property_type
+      ? { label: "Property type", value: coordination.property_type }
+      : undefined,
+    coordination.mailing_address
+      ? { label: "Mailing address", value: coordination.mailing_address }
+      : undefined,
+    coordination.concessions ? { label: "Concessions", value: coordination.concessions } : undefined,
+    coordination.renovation_note
+      ? { label: "Renovations", value: coordination.renovation_note }
+      : undefined,
+    coordination.photo_plan ? { label: "Photography", value: coordination.photo_plan } : undefined,
+    coordination.photographer_note
+      ? { label: "Photographer", value: coordination.photographer_note }
+      : undefined,
+    coordination.disclosure_note
+      ? { label: "Disclosures", value: coordination.disclosure_note }
+      : undefined,
+    coordination.lead_based_paint
+      ? { label: "Lead-based paint", value: coordination.lead_based_paint }
+      : undefined,
+    coordination.district_notice
+      ? { label: "District notice", value: coordination.district_notice }
+      : undefined,
+    coordination.target_list_note
+      ? { label: "Target list", value: coordination.target_list_note }
+      : undefined,
+  ].filter((fact): fact is { label: string; value: string } => Boolean(fact));
+  const stillNeeded = coordination.still_needed?.filter(Boolean) ?? [];
+  const openQuestions = coordination.open_questions?.filter(Boolean) ?? [];
+
+  return (
+    <div className="mt-4 space-y-4 text-sm">
+      {facts.length > 0 && (
+        <dl className="space-y-3">
+          {facts.map((fact) => (
+            <div key={fact.label} className="grid gap-1 border-b border-border pb-2 sm:grid-cols-[11rem_1fr]">
+              <dt className="text-ink-muted">{fact.label}</dt>
+              <dd className="text-ink">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {stillNeeded.length > 0 && (
+        <div>
+          <h3 className="font-medium text-ink">Still needed</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-ink">
+            {stillNeeded.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {openQuestions.length > 0 && (
+        <div>
+          <h3 className="font-medium text-ink">Open MLS questions</h3>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-ink">
+            {openQuestions.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

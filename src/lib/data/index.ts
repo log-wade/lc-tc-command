@@ -12,7 +12,7 @@ import { loadAttachmentContents } from "../email/load-attachments";
 import { fillTemplate } from "../templates/signature";
 import { buildEmailContext } from "../templates/build-context";
 import { htmlDraftToPlainText } from "../templates/html-draft";
-import { resolveSendRecipients } from "../email/recipients";
+import { collectEmailList, resolveSendRecipients } from "../email/recipients";
 import { sendEmail } from "../email/resend";
 import { recordFileEvent } from "../events/file-events";
 import { isEcadRequired } from "../listings/ecad";
@@ -1121,9 +1121,16 @@ async function loadRecipientFields(
       if (!agentEmail) agentEmail = memoryStore.getAgent(agentId)?.email;
     }
 
+    const extraSellerEmails = Array.isArray(meta.seller_emails)
+      ? meta.seller_emails.filter((value): value is string => typeof value === "string")
+      : undefined;
+    const sellerEmails = collectEmailList(
+      typeof meta.seller_email === "string" ? meta.seller_email : undefined,
+      extraSellerEmails
+    );
+
     return {
-      sellerEmail:
-        typeof meta.seller_email === "string" ? meta.seller_email : undefined,
+      sellerEmail: sellerEmails.join(", ") || undefined,
       agentEmail,
     };
   }
